@@ -1,0 +1,27 @@
+TODO
+
+Note Class
+   Egenskaper: ton, längd, startpunkt
+
+
+Create answer from subject 
+   Transpose subject to dominant
+
+Create counter subject
+   
+
+
+Define scale
+   Dur, c = 0, d = 2
+
+
+How to solve when some tone in answer isn't in scale
+
+
+
+Input ska hanteras
+    Array med noter som skapar ett tema
+
+
+Output
+   Printa ut tonnamn och längd på nåt smidigt och läsbart sätt
