@@ -1,5 +1,29 @@
 TODO
 
+Create counter subject
+
+How to solve when some tone in answer isn't in scale
+
+
+Output
+   Printa ut tonnamn och längd på nåt smidigt och läsbart sätt.
+   Just nu går det att printa, men är svårläst.
+
+
+Create second voice in bar 5.
+
+
+Create the more free parts in bar 3-4, 7-8 and 11-12.
+
+
+Create a way to easily add a new subject.
+
+
+
+=============================
+
+Typ klart:
+
 Note Class
    Egenskaper: ton, längd, startpunkt
 
@@ -7,21 +31,16 @@ Note Class
 Create answer from subject 
    Transpose subject to dominant
 
-Create counter subject
-   
-
 
 Define scale
    Dur, c = 0, d = 2
-
-
-How to solve when some tone in answer isn't in scale
-
 
 
 Input ska hanteras
     Array med noter som skapar ett tema
 
 
-Output
-   Printa ut tonnamn och längd på nåt smidigt och läsbart sätt
+
+===============================
+
+Helt klart:
