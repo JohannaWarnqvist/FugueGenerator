@@ -1,24 +1,29 @@
-TODO
+﻿TODO
 
 Create counter subject
 
 How to solve when some tone in answer isn't in scale
 
-
 Output
    Printa ut tonnamn och längd på nåt smidigt och läsbart sätt.
    Just nu går det att printa, men är svårläst.
 
-
 Create second voice in bar 5.
-
 
 Create the more free parts in bar 3-4, 7-8 and 11-12.
 
-
 Create a way to easily add a new subject.
 
+Slumpa melodier gausiskt för att få mer moldisk slump
 
+Bestäm med definitivt hur beats och length i ton klasses ska se ut och fungera 
+
+Skicka in en lista i subject "creation" metoden dvs. skicka in en färdig melodi
+
+implementera alla alterneringar på subjektet som nämns i videon för fugor
+
+(implementera olia modes för skalor)OBS! lägg inte till i random processen utan är endast
+alternativ för användaren att välja mellan flera
 
 =============================
 
