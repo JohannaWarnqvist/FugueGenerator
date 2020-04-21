@@ -17,6 +17,7 @@ Create a way to easily add a new subject.
 Slumpa melodier gaussiskt för att få mer melodisk slump
 
 Bestäm mer definitivt hur beats och length i ton klasser ska se ut och fungera 
+ev använd midi standard för att referefa till noter
 
 Skicka in en lista i subject "creation" metoden dvs. skicka in en färdig melodi
 
