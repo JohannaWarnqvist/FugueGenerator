@@ -21,7 +21,7 @@ ev använd midi standard för att referefa till noter
 
 Skicka in en lista i subject "creation" metoden dvs. skicka in en färdig melodi
 
-implementera alla alterneringar på subjektet som nämns i videon för fugor
+implementera alla alterneringar på subjektet som nämns i videon för fugor: inversion (klar) , baklänges, dubbel/halvtempo... 
 
 (implementera olia modes för skalor)OBS! lägg inte till i random processen utan är endast
 alternativ för användaren att välja mellan flera
