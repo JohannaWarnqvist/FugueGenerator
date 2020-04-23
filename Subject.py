@@ -104,6 +104,23 @@ class Subject:
                         note.pitch -= 12
 
         return transposed_subject
+    
+    def inverse_subject(self):
+        "Return an inverse of the subject."
+        
+        # Note: This function should also probably be moved to a melody class
+        
+        inverse_subject = copy.deepcopy(self.subject_melody)
+        starting_pitch = self.subject_melody[0].pitch
+
+        for note in inverse_subject:
+            # Check if pause 
+            if note.pitch == None:
+                continue
+
+            # Invert the melody intervals 
+            note.pitch =  2 * starting_pitch - note.pitch
+        return inverse_subject
 
     def subject_at_given_beat(self, beat, melody = None):
         "Return a copy of a melody or the subject, but starting at the wanted beat."
