@@ -24,6 +24,9 @@ def init_preset_track(num):
         track + "E"
     return track
 
+
+#TODO neither built in nor alternative method cad handle pauses!
+
 #Transpose - track.transpose(interval, up = True):
 # type_of_interval is for example " 7" = major seventh, "b4" = minor fourth
 # You can use the numbers 1-7 combined with an optional accidental prefix to get the interval from a certain note.

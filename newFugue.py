@@ -30,6 +30,8 @@ def add_tracks(track1, track2):
 #input_subject is a Track, subject can be any length
 def generate_fugue(key,subject):
 
+    #TODO 
+    #Fill out rest of bar of subjkect with pause(i did this but it caused problems with transpose so transpose needs to be fixed first)
     subject_lenght = subject.__len__()
 
     # Create first bar with subject in first voice and pause in second voice. 
