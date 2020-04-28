@@ -1,6 +1,6 @@
 from Scale import Scale
 from Melody import Melody
-from Melody import Subject
+from Subject import Subject
 from Note import Note
 
 import random
