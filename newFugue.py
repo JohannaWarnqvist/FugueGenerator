@@ -30,9 +30,10 @@ def add_tracks(track1, track2):
 #input_subject is a Track, subject can be any length
 def generate_fugue(key,subject):
 
-    #If subject doesn't fill full bars 
-    #Fill out rest of last bar of subject with rest
-    if not (subject[-1].is_full()):
+    #If subject doesn't fill full bars fill out rest of last bar of subject with rest
+    #if last bar is not full
+    if not (subject[-1].is_full()): 
+        #place a rest at the end of the last bar with the length of 1/(remaining fraction of bar)
         subject[-1].place_rest(int(1.0/subject[-1].space_left()))
 
     # Create first bar with subject in first voice and rest in second voice. 
@@ -51,16 +52,14 @@ def generate_fugue(key,subject):
     #second_voice = second_voice + answer
     add_tracks(second_voice,answer)
 
-    
-
     # Create development in minor in bar 5 and 6. 
     # Create stretto in bar 9 and 10.
 
     #INSERT MORE CODE HERE
     
-    #Test Inverse track - WORKS!
-    #inverse = Track_Functions.invert(subject)
-    #add_tracks(second_voice,inverse)
+    #Test reverse track - WORKS!
+    reverse = Track_Functions.reverse(subject)
+    add_tracks(second_voice,reverse)
 
     #Add voices together to create a final composition
     fugue.add_track(first_voice)

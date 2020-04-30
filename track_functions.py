@@ -30,15 +30,9 @@ def init_preset_track(num):
     return track
 
 
-#TODO (Fixed ish) neither built in nor alternative method cad handle pauses!
-
-
-#Transpose - track.transpose(interval, up = True):
-# type_of_interval is for example " 7" = major seventh, "b4" = minor fourth
-# You can use the numbers 1-7 combined with an optional accidental prefix to get the interval from a certain note.
-# Any number of accidentals can be used, but -again- use it cautiously. No prefix means that you want the major interval,
-# a ‘b’ will return the minor interval, ‘bb’ the diminished, ‘#’ the augmented.
-# up is boolean that determines wheter to transpose it up (True) or down (False)
+#Transpose WORKS!
+# interval is for example " 7" = major seventh, "b4" = minor fourth
+# More info on Mingus web page under intervals - intervals from shorthand
 
 #alt method using nmb_of_halfnotes (an int) as input
 def transpose_from_halfnote(track,nmb_of_halfnotes,up =True):
@@ -73,21 +67,24 @@ def transpose(track, interval, up):
     return transposed_track
       
 
-#Invert 
-def invert(track):
+#Reverse WORKS
+#Returns an copied and inverted track of input track
+def reverse(track):
     # Copy value of reference to aviod problems with overwriting    
     input_track = copy.deepcopy(track)
-    inverted_track = Track()
+    #empty track to write to later
+    reversed_track = Track()
 
+    #create a reversed list of notes from input track
     notes = input_track.get_notes()
     reversed_notes = reversed(list(notes))
-    # Calculate transposed track
     
+    #Add notes to reversed_track
     for note in reversed_notes:
-        inverted_track.add_notes(note[-1])
+        reversed_track.add_notes(note[-1])
 
-    # Return transposed track
-    return inverted_track
+    # Return reversed track
+    return reversed_track
 
 #----------------------------------
 # TODO
