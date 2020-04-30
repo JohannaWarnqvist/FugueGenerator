@@ -23,7 +23,6 @@ def init_preset_track(num):
         track + "G"
         track + "E"
         track.add_notes(None)
-        track.add_notes(None)
     if num==2:
         bar = Bar()
         bar.place_rest(1)
@@ -48,13 +47,13 @@ def transpose_from_halfnote(track,nmb_of_halfnotes,up =True):
     interval = lookup[nmb_of_halfnotes-1]
     
     # Use transpose_track to get a transposed copy of the track
-    transposed_track = transpose_track(track, interval, up)
+    transposed_track = transpose(track, interval, up)
     
     # Return transposed track
     return transposed_track
    
 
-def transpose_track(track, interval, up):
+def transpose(track, interval, up):
     "Return a copy of the track, transposed the given interval up if up = True, otherwise down."
     
     # Copy value of reference to aviod problems with overwriting    
@@ -76,7 +75,19 @@ def transpose_track(track, interval, up):
 
 #Invert 
 def invert(track):
-    return track
+    # Copy value of reference to aviod problems with overwriting    
+    input_track = copy.deepcopy(track)
+    inverted_track = Track()
+
+    notes = input_track.get_notes()
+    reversed_notes = reversed(list(notes))
+    # Calculate transposed track
+    
+    for note in reversed_notes:
+        inverted_track.add_notes(note[-1])
+
+    # Return transposed track
+    return inverted_track
 
 #----------------------------------
 # TODO
