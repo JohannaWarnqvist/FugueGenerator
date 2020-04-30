@@ -2,7 +2,7 @@
 # This document works as the Main file for fugue generation
 # Contains the global variables that defines the fugue, voices, key and subject
 # The function generate fugue generates a finished fugue composition
-# The subject can be any lenght!
+# The subject can be any length!
 #--------------------------------------------------------------
 
 from mingus.containers import Composition
@@ -11,7 +11,7 @@ from mingus.containers import Track
 import mingus.core.intervals as intervals
 
 import mingus.extra.lilypond as LilyPond
-from Mindus_LilyPond_helper import to_LilyPond_file
+from Mingus_LilyPond_helper import to_LilyPond_file
 import track_functions as Track_Functions
 from mingus.midi import midi_file_out
 import copy
@@ -23,24 +23,25 @@ second_voice = Track()
 
 #Very useful helper function
 def add_tracks(track1, track2):
-    for i in range(track2.__len__()):  
-        track1.add_bar(track2[i-1])
+    for i in range(len(track2)):  
+        track1.add_bar(track2[i])
 
 #input_key is a char signifying what key we are using
 #input_subject is a Track, subject can be any length
 def generate_fugue(key,subject):
 
     #TODO 
-    #Fill out rest of bar of subjkect with pause(i did this but it caused problems with transpose so transpose needs to be fixed first)
-    subject_lenght = subject.__len__()
+    #Fill out rest of bar of subject with rest(i did this but it caused problems with transpose so transpose needs to be fixed first)
+    
+    subject_length = len(subject)
 
-    # Create first bar with subject in first voice and pause in second voice. 
-    pause_1bar = Bar(key)
-    pause_1bar.place_rest(1)
+    # Create first bar with subject in first voice and rest in second voice. 
+    rest_1bar = Bar(key)
+    rest_1bar.place_rest(1)
     first_voice = copy.deepcopy(subject)
-    #Kind of ugly way of writing add same amout of "pause bars" as the number of bars in the subject
-    for i in range(subject_lenght):  
-        second_voice.add_bar(pause_1bar)
+    #Kind of ugly way of writing add same amount of "rest bars" as the number of bars in the subject
+    for i in range(subject_length):  
+        second_voice.add_bar(copy.deepcopy(rest_1bar))
     
 
     # Create second bar with answer in second voice. Countersubject comes later.

@@ -22,10 +22,13 @@ def init_preset_track(num):
         track + "F"
         track + "G"
         track + "E"
+        track.add_notes(None)
+        track.add_notes(None)
     return track
 
 
-#TODO neither built in nor alternative method cad handle pauses!
+#TODO (Fixed ish) neither built in nor alternative method cad handle pauses!
+
 
 #Transpose - track.transpose(interval, up = True):
 # type_of_interval is for example " 7" = major seventh, "b4" = minor fourth
@@ -39,10 +42,19 @@ def transpose_from_halfnote(track,nmb_of_halfnotes,up =True):
     #determine interval from nmb_of_steps
     lookup = ["b2"," 2","b3"," 3", " 4", "#4", " 5", "b6", " 6", "b7", " 7"]
     interval = lookup[nmb_of_halfnotes-1]
+    
     #copy value of reference to prevent changing value of subject
     transposed_track = copy.deepcopy(track)
+    
     #calculate transposed track and return
-    transposed_track = transposed_track.transpose(interval,up)
+    for bar in transposed_track:
+        for i in range(len(bar)):
+            # Try to check if the note container is None. If not, try to transpose the note which should work if the previous note is correct.
+            try:               
+                if bar[i][-1] == None:
+                    continue                    
+            except:
+                bar[i][-1][0].transpose(interval, up)
 
     return transposed_track
     

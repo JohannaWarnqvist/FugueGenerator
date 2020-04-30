@@ -1,4 +1,4 @@
-#helper file to create lilypond files from mindus
+#helper file to create lilypond files from mingus
 
 def to_LilyPond_file(ly_string, filename):
     ly_string = '\\version "2.10.33"\n' + ly_string 
