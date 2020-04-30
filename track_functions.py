@@ -43,21 +43,33 @@ def transpose_from_halfnote(track,nmb_of_halfnotes,up =True):
     lookup = ["b2"," 2","b3"," 3", " 4", "#4", " 5", "b6", " 6", "b7", " 7"]
     interval = lookup[nmb_of_halfnotes-1]
     
-    #copy value of reference to prevent changing value of subject
+    # Use transpose_track to get a transposed copy of the track
+    transposed_track = transpose_track(track, interval, up)
+    
+    # Return transposed track
+    return transposed_track
+   
+
+def transpose_track(track, interval, up):
+    "Return a copy of the track, transposed the given interval up if up = True, otherwise down."
+    
+    # Copy value of reference to aviod problems with overwriting    
     transposed_track = copy.deepcopy(track)
     
-    #calculate transposed track and return
-    for bar in transposed_track:
-        for i in range(len(bar)):
-            # Try to check if the note container is None. If not, try to transpose the note which should work if the previous note is correct.
-            try:               
-                if bar[i][-1] == None:
-                    continue                    
-            except:
-                bar[i][-1][0].transpose(interval, up)
-
-    return transposed_track
+    # Calculate transposed track
+    notes = transposed_track.get_notes()
+    for note in notes:
+        # Try to check if the note container is None. If not, transpose it.
+        # note is technically a note container, might be good to know sometime.
+        try:               
+            if note[-1] == None:
+                continue                    
+        except:
+            note[-1].transpose(interval, up)
     
+    # Return transposed track
+    return transposed_track
+      
 
 #Invert 
 def invert(track):
