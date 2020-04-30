@@ -24,6 +24,10 @@ def init_preset_track(num):
         track + "E"
         track.add_notes(None)
         track.add_notes(None)
+    if num==2:
+        bar = Bar()
+        bar.place_rest(1)
+        track.add_bar(bar)
     return track
 
 
@@ -61,10 +65,9 @@ def transpose_track(track, interval, up):
     for note in notes:
         # Try to check if the note container is None. If not, transpose it.
         # note is technically a note container, might be good to know sometime.
-        try:               
-            if note[-1] == None:
+        if note[-1] is None:
                 continue                    
-        except:
+        else:
             note[-1].transpose(interval, up)
     
     # Return transposed track
