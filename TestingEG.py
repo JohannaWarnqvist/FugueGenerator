@@ -1,8 +1,12 @@
 from Scale import Scale
 from EvolutionaryGenerator import EvolutionaryGenerator
 
-scale = Scale(0)
+key = "C"
 
-eg = EvolutionaryGenerator(scale)
+eg = EvolutionaryGenerator(key)
+eg.run_evolution()
+
+print(eg.max_fitness_value)
+print(eg.best_individual)
 
 #print(eg.population)

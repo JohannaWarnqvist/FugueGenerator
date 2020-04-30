@@ -1,15 +1,14 @@
 import random as rnd
 import numpy as np
 import copy
-from Note import Note
-from Scale import Scale
 import math
 import copy
-
+from mingus.core import *
+from mingus.containers import *
 
 class EvolutionaryGenerator():
 
-    def __init__(self, scale, nr_bars = 2):
+    def __init__(self, key, nr_bars = 2):
         "Initialize all the parameters"
         
         # When testing to regenerate same case:
@@ -17,8 +16,10 @@ class EvolutionaryGenerator():
         #np.random.seed(1)
 
         # == Parameters ==
-        self.population_size = 100
-        self.nr_generations = 1000;
+        self.population_size = 2
+        self.nr_generations = 2;
+        
+        self.probability_rest = 0.05
         
         self.crossover_probability = 0.8;
         self.mutation_probability = 1/(nr_bars*4);
@@ -31,17 +32,24 @@ class EvolutionaryGenerator():
         self.pause_probability = 0.5
 
         self.nr_bars = nr_bars
-        self.scale = scale
+        self.key = key
         
-        self.run_evolution()
+        self.best_individual = None
+        self.max_fitness_value = 0
+        
+        # Deciding here which note lengths that are allowed. Maybe should be done somewhere else?
+        #self.possible_lengths = [1, 4/3, 2, 8/3, 4, 16/3, 8, 32/3, 16, 32]
+        self.possible_lengths = [1, 2, 4, 8, 16]
+        
         
     def run_evolution(self):
         
         # Initialize population
         self.population = self.initialize_population()
         
+        
         fitness_values = np.zeros(self.population_size)
-        max_fitness_value = 0
+        self.max_fitness_value = 0
         for iGen in range(self.nr_generations):
             
             # == Calculate fitness and save best individual ==
@@ -49,15 +57,17 @@ class EvolutionaryGenerator():
             
             # Save a copy of the best individual
             best_individual_index = np.argmax(fitness_values)        
-            best_individual = copy.deepcopy(self.population[best_individual_index])
+            self.best_individual = copy.deepcopy(self.population[best_individual_index])
             
             # Print best individual and its fitness value if better than before
-            if fitness_values[best_individual_index] > max_fitness_value:
+            if fitness_values[best_individual_index] > self.max_fitness_value:
                 print(iGen)
-                print(best_individual)
+                print(self.best_individual)
                 print(fitness_values[best_individual_index])
-                max_fitness_value = fitness_values[best_individual_index]
+                self.max_fitness_value = fitness_values[best_individual_index]
             
+            # TODO: Add the rest of the algorithm when they are translated to mingus
+            """
             # == Tournament selection ==
             tmp_population = []
             for i in range(self.population_size):
@@ -83,60 +93,67 @@ class EvolutionaryGenerator():
 
             
             # == Elitism ==            
-            tmp_population = self.insert_best_individual(tmp_population, best_individual)
+            tmp_population = self.insert_best_individual(tmp_population, self.best_individual)
             
             
             # == Save generation ==
             self.population = tmp_population
+        """
         
     
-    def initialize_population(self):
+    def initialize_population(self, meter = (4,4), min_pitch = -12, max_pitch = 24):
         """Create the population consisting of the wanted number of
-        randomly generated melodies
+        randomly generated melodies.
         """
         population = []
         
+        scale_tones = scales.get_notes(key = self.key)
+        
         for i in range(self.population_size):
-            melody = []
-            min_pitch = -12
-            max_pitch = 24
+            melody = Track()            
             
-            beat = 0   
-            while beat < self.nr_bars * 16:
-            
-                # Testing
-                if len(melody) > 1:
-                    if melody[-1].beat > melody[-2].beat + melody[-2].length:
-                        breakpoint()
-
-                # Decide pitch of a note                
-                r = rnd.random()
-                if r < 0.05:
-                    pitch_tone = None
-                else:
-                    pitch_list = self.scale.get_part_of_scale(min_pitch, max_pitch)
-                    pitch_tone = rnd.choice(pitch_list)
+            for i in range(self.nr_bars):
+                bar = Bar(self.key, meter)
+                while not bar.is_full():
+                    #breakpoint()
+                    # Decide length of a note. Maximum length is what is left of this bar.
+                    length_left = 1 - bar.current_beat
                     
-                # Decide length of a note, length 1 = quarter note. Max half note or what is left in bar if less than half note.
-                length = rnd.randrange(1,min(self.nr_bars*16-beat,16)+1)
-                
-                # Scale to quarter notes due to Note class
-                length_tone = length*0.25
-                beat_note = beat*0.25
-                
-                # Create note object at the current beat
+                    length = 0.5
+                    while 1/length > length_left:
+                        length = rnd.choice(self.possible_lengths)
+                    
+                    
+                    # Decide pitch of a note                
+                    r = rnd.random()
+                    if r < self.probability_rest:
+                        pitch_tone = None
+                        # Add note to bar with the decided length                        
+                        bar.place_rest(length)
 
-                note = Note(pitch_tone, length_tone, beat_note)
-                
+                    else:
+                        # Choose one random tone in the scale
+                        note_letter = rnd.choice(scale_tones)
+                        
+                        # Choose one random octave, with more chance to get close to 4.
+                        octave = round(np.random.normal(loc = 4, scale = 0.5))
+                             
+                        # Note: Might be problematic of a octave number that is too high or too low is chosen.
+                        note = Note(note_letter, octave)
+                                            
+                        # Add note to bar with the decided length                        
+                        bar.place_notes(note, length)
+
+                    print(bar)
                 # Add note to subject
-                melody.append(note)
-                
-                beat += length
+                melody.add_bar(bar)
                 
             population.append(melody)
-    
+        
+        print(population)
         return population
     
+    # TODO: Translate to mingus
     def cross_over(self, chromosomes):
         """Change chromosome by using crossover between two chromosomes.
         It decides a beat to split and exchange tails after this beat
@@ -144,16 +161,17 @@ class EvolutionaryGenerator():
         """
         
         # Decide at which semiquaver to cross
-        nr_note_slots = self.nr_bars*16        
+        nr_note_slots = self.nr_bars*16
         break_point = rnd.randrange(1,nr_note_slots)
         
         # Initialize list to save heads and tails of each chromosome      
-        head_chromosome = [[],[]]
-        tail_chromosome = [[],[]]
+        head_chromosome = [Track(),Track()]
+        tail_chromosome = [Track(),Track()]
         
         for iChrom in range(2):
             beat = 0        
-            for note in chromosomes[iChrom]:
+            notes = chromosomes[iChrom].get_notes()
+            for note in notes:
                 if beat + 4*note.length < break_point:
                     # Testing
                     if note.length < 0:
@@ -195,7 +213,8 @@ class EvolutionaryGenerator():
         
         return cross_chromosomes
 
-
+    
+    # TODO: Translate to mingus
     def tournament_selection(self, fitness_values, 
             tournament_selection_parameter, tournament_size):
         "Select index of new individual by using tournament selection"
@@ -230,6 +249,7 @@ class EvolutionaryGenerator():
         return index_selected
 
 
+    # TODO: Translate to mingus
     def mutate(self, chromosome):
         """Mutate each gene with a certain probability. Can either split the note into two 
         notes of same pitch, shorten tone and add pause at the rest part or longer the note 
@@ -329,11 +349,15 @@ class EvolutionaryGenerator():
         for iPop in range(self.population_size):
             melody = population[iPop]
             fitness = 0
-            for iNote in range(len(melody)):
-                if melody[iNote].pitch == None:
-                    fitness += 4*melody[iNote].length*1
+            notes = melody.get_notes()
+            
+            for note in notes:
+                if note[-1] is None:
+                        fitness += note[1]*1/self.nr_bars
                 else:
-                    fitness += (4*melody[iNote].length * 10*abs(melody[iNote].pitch))/self.nr_bars
+                    distance = Note('C').measure(note[-1][0])
+                    fitness += (note[1] * 10*abs(distance))/self.nr_bars
+
             if fitness == 0:
                 fitness_values[iPop] = 2
             else:
@@ -342,7 +366,7 @@ class EvolutionaryGenerator():
         return fitness_values
     
     
-    
+    # TODO: Translate to mingus
     def insert_best_individual(self, tmp_population, best_individual):
         """Insert the individual with highest fitness in the previous
         generation to the new generation.
