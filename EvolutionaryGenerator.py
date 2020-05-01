@@ -5,6 +5,7 @@ import math
 import copy
 from mingus.core import *
 from mingus.containers import *
+import track_functions as Track_Functions
 
 class EvolutionaryGenerator():
 
@@ -61,20 +62,19 @@ class EvolutionaryGenerator():
             
             # Print best individual and its fitness value if better than before
             if fitness_values[best_individual_index] > self.max_fitness_value:
-                print(iGen)
-                print(self.best_individual)
-                print(fitness_values[best_individual_index])
+                print(f"Generation: {iGen}")
+                print(f"Best individual: {self.best_individual}")
+                print(f"Fitness: {fitness_values[best_individual_index]}")
                 self.max_fitness_value = fitness_values[best_individual_index]
             
-            # TODO: Add the rest of the algorithm when they are translated to mingus
-            """
             # == Tournament selection ==
             tmp_population = []
             for i in range(self.population_size):
                 index_selected = self.tournament_selection(fitness_values, self.tournament_selection_parameter, self.tournament_size)
-                tmp_population.append(self.population[index_selected])
+                individual_selected = copy.deepcopy(self.population[index_selected])
+                tmp_population.append(individual_selected)
             
-
+            
             # == Crossover ==
             for iCross in range(0, self.population_size-1, 2):
                 chromosome1 = self.population[iCross]
@@ -86,11 +86,12 @@ class EvolutionaryGenerator():
                     tmp_population[iCross] = crossed_pair[0]
                     tmp_population[iCross + 1] = crossed_pair[1]
                 
-            
+            # TODO: Add the rest of the algorithm when they are translated to mingus 
+            """
             # == Mutation ==            
             for i in range(self.population_size):
                 tmp_population[i] = self.mutate(tmp_population[i])
-
+            
             
             # == Elitism ==            
             tmp_population = self.insert_best_individual(tmp_population, self.best_individual)
@@ -144,16 +145,14 @@ class EvolutionaryGenerator():
                         # Add note to bar with the decided length                        
                         bar.place_notes(note, length)
 
-                    print(bar)
                 # Add note to subject
                 melody.add_bar(bar)
                 
             population.append(melody)
         
-        print(population)
+        print(f"Initial population: {population}")
         return population
     
-    # TODO: Translate to mingus
     def cross_over(self, chromosomes):
         """Change chromosome by using crossover between two chromosomes.
         It decides a beat to split and exchange tails after this beat
@@ -161,20 +160,88 @@ class EvolutionaryGenerator():
         """
         
         # Decide at which semiquaver to cross
-        nr_note_slots = self.nr_bars*16
-        break_point = rnd.randrange(1,nr_note_slots)
+        nr_note_slots = self.nr_bars
+        bar_to_break_in = rnd.randrange(nr_note_slots)
+        beat_to_break_at = rnd.randrange(16)/16
+        
+        
         
         # Initialize list to save heads and tails of each chromosome      
         head_chromosome = [Track(),Track()]
         tail_chromosome = [Track(),Track()]
+        # Place to save the half bars that should be part of tail
+        end_head_chromosome = [Bar(), Bar()]
+        start_tail_chromosome = [Bar(), Bar()]
         
         for iChrom in range(2):
-            beat = 0        
-            notes = chromosomes[iChrom].get_notes()
+            
+            bar_nr = 0
+            for bar in chromosomes[iChrom]:
+                if bar_nr < bar_to_break_in:
+                    head_chromosome[iChrom].add_bar(bar)
+                
+                elif bar_nr > bar_to_break_in:
+                    tail_chromosome[iChrom].add_bar(bar)
+                
+                else:
+                    if beat_to_break_at == 0:
+                        tail_chromosome[iChrom].add_bar(bar)
+                        bar_nr += 1
+                        continue
+                    
+                    beat = 0
+                    note_index = 0
+                    note_pitch = bar[note_index][2]
+                    note_duration = bar[note_index][1]
+                    print(f"break beat: {beat_to_break_at}")
+                    while beat < 1.0:
+                        print(f"current beat = {beat}")
+                        if beat + 1/bar[note_index][1] <= beat_to_break_at:
+                            end_head_chromosome[iChrom].place_notes(note_pitch, note_duration)
+                        
+                        elif beat >= beat_to_break_at:
+                            if beat == beat_to_break_at:
+                                start_tail_chromosome[iChrom].current_beat = beat_to_break_at
+                                
+                            start_tail_chromosome[iChrom].place_notes(note_pitch, note_duration)
+                        
+                        else:                            
+                            # Divide to one part from beat to breakpoint, and one the length left over starting at breakpoint
+                            first_part_duration = 1/(beat_to_break_at - beat)
+                            second_part_duration = 1/(1/note_duration - 1/first_part_duration)
+                            
+                            end_head_chromosome[iChrom].place_notes(note_pitch, first_part_duration)
+                            start_tail_chromosome[iChrom].current_beat = beat_to_break_at
+                            start_tail_chromosome[iChrom].place_notes(note_pitch, second_part_duration)
+                        beat += 1/bar[note_index][1]
+                        
+                bar_nr += 1
+        
+        middle_bars = []
+        cross_chromosomes = []
+        for i in range(2):
+        
+            # Combine the two middle parts in the new way
+            middle_bars.append(self.combine_bars(end_head_chromosome[i], start_tail_chromosome[1-i]))
+        
+            # Add the changed middlebar to the head_chromosome
+            head_chromosome[i].add_bar(middle_bars[i])
+                
+            # Create a new chromosome by adding the new tail to the head
+            Track_Functions.add_tracks(head_chromosome[i], tail_chromosome[1-i])
+            new_chromosome = head_chromosome[i]
+            
+            # Add the new chromosome to the list to be returned
+            cross_chromosomes.append(new_chromosome)
+        
+        
+        
+        
+            """notes = chromosomes[iChrom].get_notes()
             for note in notes:
-                if beat + 4*note.length < break_point:
+                if beat + (1/note[1]) < break_point:
                     # Testing
-                    if note.length < 0:
+                    if note[1] < 0:
                         breakpoint()
                     
                     # Add the whole note to head
@@ -183,15 +250,18 @@ class EvolutionaryGenerator():
                 elif beat < break_point:
                     # Split the note in two, with the first one in head and second in tail
                     
-                    note1 = copy.copy(note)
-                    note1.length = 0.25*(break_point-beat)
+                    note1 = copy.deepcopy(note)
+                    breakpoint()
+                    print(note1)
+                    
+                    note1[1] = (1/(break_point-beat))
                     
                     note2 = copy.copy(note)
-                    note2.length = note.length - note1.length
-                    note2.beat = note1.beat + note1.length
+                    note2[1] = 1/((1/note[1]) - (1/note1[1]))
+                    note2[0] = note1[0] + (1/note1[1])
 
                     # Testing
-                    if note1.length < 0 or note2.length < 0:
+                    if note1[1] < 0 or note2[1] < 0:
                         breakpoint()
                     
                     head_chromosome[iChrom].append(note1)
@@ -199,22 +269,68 @@ class EvolutionaryGenerator():
                 
                 else:
                     # Testing
-                    if note.length < 0:
+                    if note[1] < 0:
                         breakpoint()
                     
                     # Add the whole note to tail
                     tail_chromosome[iChrom].append(note)
                     
                     
-                beat += 4*note.length
+                beat += 1/note[1]
           
         # Create the new chromosomes by combining one chromosomes head with the other's tail.
-        cross_chromosomes = [head_chromosome[0] + tail_chromosome[1], head_chromosome[1]+tail_chromosome[0]]
+        list_cross_chromosomes = [head_chromosome[0] + tail_chromosome[1], head_chromosome[1]+tail_chromosome[0]]
+        
+        cross_chromosomes = [Track(), Track()]
+        for chromosome in list_cross_chromosomes:
+            b = Bar()
+            for note in chromosome:
+                added = b.place_notes(note[2], note[1])
+                if b.is_full:
+                    chromosome.add_bar(b)
+                    b = Bar()
+        """
         
         return cross_chromosomes
 
+    def combine_bars(self, bar1, bar2):
     
-    # TODO: Translate to mingus
+        new_bar = Bar()
+        end_bar1 = bar1.current_beat
+        start_bar2 = bar2[0][0]
+        
+        if end_bar1 > start_bar2:
+            breakpoint()
+            raise ValueError('Bars overlapping.')
+        
+        if end_bar1 < start_bar2:
+            difference_duration = 1/(start_bar2 - end_bar1)
+            bar1.place_rest(difference_duration)
+            end_bar1 = bar1.current_beat
+        
+        # perfect combo
+        if end_bar1 == start_bar2:
+            for note in bar1:
+                note_duration = note[1]
+                note_type = note[2]
+                
+                if note_type is None:
+                    new_bar.place_rest(note_duration)
+                else:
+                    new_bar.place_notes(note_type, note_duration)
+                    
+            for note in bar2:
+                note_duration = note[1]
+                note_type = note[2]
+                
+                if note_type is None:
+                    new_bar.place_rest(note_duration)
+                else:
+                    new_bar.place_notes(note_type, note_duration)
+        
+        return new_bar
+
+    
     def tournament_selection(self, fitness_values, 
             tournament_selection_parameter, tournament_size):
         "Select index of new individual by using tournament selection"
@@ -232,7 +348,7 @@ class EvolutionaryGenerator():
         for i in range(len(chosen_fitness_values)): 
               value_and_index.append([chosen_fitness_values[i],chosen_indices[i]]) 
         value_and_index.sort() 
-        sort_index = [] 
+        sort_index = []
           
         for x in value_and_index: 
               sort_index.append(x[1]) 
@@ -256,12 +372,16 @@ class EvolutionaryGenerator():
         and delete any notes that where there previously."""
         #mutate the note by either splitting, merging with next or shortening adding a pause
 
-        #breakpoint()
-        mutated_chromosome = []
-        self.mutation_probability = 2/len(chromosome)
+        breakpoint()
+        mutated_chromosome = Track()
+        nr_notes_in_chromosome = len(chromosome[1])
+        self.mutation_probability = 2/nr_notes_in_chromosome
+        
+        notes = chromosome.get_notes()
+        
         ind = 0
         current_beat = 0
-        while ind < len(chromosome):
+        while ind < nr_notes_in_chromosome:
         
             # If completely covered by previous note, skip this note
             if chromosome[ind].beat + chromosome[ind].length <= current_beat:

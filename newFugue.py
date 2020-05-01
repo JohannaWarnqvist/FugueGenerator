@@ -21,10 +21,6 @@ fugue = Composition()
 first_voice = Track()
 second_voice = Track() 
 
-#Very useful helper function
-def add_tracks(track1, track2):
-    for i in range(len(track2)):  
-        track1.add_bar(track2[i])
 
 #input_key is a char signifying what key we are using
 #input_subject is a Track, subject can be any length
@@ -50,7 +46,7 @@ def generate_fugue(key,subject):
     answer = Track_Functions.transpose_from_halfnote(subject , 7)
     
     #second_voice = second_voice + answer
-    add_tracks(second_voice,answer)
+    Track_Functions.add_tracks(second_voice,answer)
 
     # Create development in minor in bar 5 and 6. 
     # Create stretto in bar 9 and 10.
@@ -59,7 +55,7 @@ def generate_fugue(key,subject):
     
     #Test reverse track - WORKS!
     reverse = Track_Functions.reverse(subject)
-    add_tracks(second_voice,reverse)
+    Track_Functions.add_tracks(second_voice,reverse)
 
     #Add voices together to create a final composition
     fugue.add_track(first_voice)
