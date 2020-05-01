@@ -17,6 +17,12 @@ import copy
 #FUNCTIONS
 #----------------------------------
 
+#Very useful helper function
+def add_tracks(track1, track2):
+    for i in range(len(track2)):  
+        track1.add_bar(track2[i])
+
+
 #Init preset track 
 def init_preset_track(num):
     track = Track()
