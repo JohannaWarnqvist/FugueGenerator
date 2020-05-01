@@ -13,17 +13,22 @@ import mingus.core.scales as scales
 import copy
 
 
-#---------------------------------
-#FUNCTIONS
-#----------------------------------
+#--------------------------------------------------------------------
+#HELPER FUNCTIONS 
+#TODO: write a function for merging two tracks into 1 (play both tracks simultaneously)
+#--------------------------------------------------------------------
 
-#Very useful helper function
 def add_tracks(track1, track2):
     for i in range(len(track2)):  
         track1.add_bar(track2[i])
 
+#def merge_tracks(track1,track2):
 
-#Init preset track 
+
+#--------------------------------------------------------------------
+#INIT PRESETS
+#TODO: Write better and more thought out presets for testing 
+#--------------------------------------------------------------------
 def init_preset_track(num):
     track = Track()
     if num==1: #C-chord
@@ -52,9 +57,12 @@ def init_preset_track(num):
     return track
 
 
-#Transpose NEEDS FIX! Transpose doesn't work for transposing mpore than an octave
+#--------------------------------------------------------------------
+# Transpose NEEDS FIX! 
+# TODO: Transpose doesn't work for transposing more than an octave
 # interval is for example " 7" = major seventh, "b4" = minor fourth
 # More info on Mingus web page under intervals - intervals from shorthand
+#--------------------------------------------------------------------
 
 #alt method using nmb_of_halfnotes (an int) as input
 def transpose_from_halfnote(track,nmb_of_halfnotes,up =True):
@@ -89,13 +97,14 @@ def transpose(track, interval, up):
     return transposed_track
 
 #NEEDS TO FIX TRANSPOSE OVER OCTAVE
-#Helper octave function
+#Helper octave function maybe?
 def octave(track, nmb_of_octaves, up=True):
     return track
       
-
-#Reverse WORKS
+#--------------------------------------------------------------------
+#REVERSE DONE
 #Returns an copied and inverted track of input track
+#--------------------------------------------------------------------
 def reverse(track):
     # Copy value of reference to aviod problems with overwriting    
     input_track = copy.deepcopy(track)
@@ -113,11 +122,11 @@ def reverse(track):
     # Return reversed track
     return reversed_track
 
-#Inverse IN PROGRESS
+#--------------------------------------------------------------------
+#INVERSE - IN PROGRESS
+#TODO Add the right accidentals to the notes depending on the scale
 #returns a copied and inverted track of input track. Inverts around the starting note of the input track
-#Problems(probably not the right notation for the scale?)
-
-
+#--------------------------------------------------------------------
 def inverse(track):
     # Copy value of reference to aviod problems with overwriting 
     inversed_track = copy.deepcopy(track)
@@ -193,6 +202,5 @@ def inverse(track):
 #-----------------------------------
 #Init random track
 #augumentation/diminition
-#overlap tracks function (merge two track to become one )
 #.....
 

@@ -19,12 +19,7 @@ import copy
 #Important variables!
 fugue = Composition()
 first_voice = Track()
-second_voice = Track() 
-
-
-# def merge_tracks(track1, track2):
-    
-        
+second_voice = Track()     
             
 #input_key is a char signifying what key we are using
 #input_subject is a Track, subject can be any length
@@ -56,14 +51,6 @@ def generate_fugue(key,subject):
     # Create stretto in bar 9 and 10.
 
     #INSERT MORE CODE HERE
-    
-    #Test reverse track - WORKS!
-    #reverse = Track_Functions.reverse(subject)
-    #add_tracks(second_voice,reverse)
-
-    #Test inverse track
-    #inverse = Track_Functions.inverse(subject)
-    #add_tracks(first_voice,inverse)
 
     #Add voices together to create a final composition
     fugue.add_track(first_voice)
