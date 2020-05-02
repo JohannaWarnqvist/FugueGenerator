@@ -10,7 +10,9 @@ from mingus.containers import Note
 import mingus.core.intervals as intervals
 import mingus.core.notes as notes
 import mingus.core.scales as scales
+import mingus.core.keys as keys
 import copy
+import random
 
 
 #--------------------------------------------------------------------
