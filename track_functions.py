@@ -197,10 +197,53 @@ def inverse(track):
     #return inversed track
     return inversed_track       
 
+# INIT RANDOM (1-BAR) TRACK ---------
+# Can be used to initalize a random subject, if is_subject is set to True. This gives a random bar that
+# starts on the root note of the key. 
+#
+# Limitations (intended and uninteded) so far:
+#   - duration is either half, quarter or eigth note. This is set to create a 'meaningful' melody.
+#   there could be more options but it should probably be weighed towards these values
+#   - the pitch range is only root to 7th. maybe it would be better to center the range around the root note
+#   - the randomization is uniform
+#   - it can't generate any pauses
+#   - it only returns a single bar (useful for subjects but we might want to create longer random tracks ?)
+# ----------------------------------
+def init_random_track(key, is_subject):
+    notes = keys.get_notes(key)
+    bar = Bar()
+    while bar.current_beat < 1 :
+        # Randomize pitch and duration of each note. 
+        duration = 2**random.randint(1,3)
+        pitch = notes[random.randint(0,6)] 
+        
+        # If it is intened to be a subject, set the first note to the root.
+        if bar.current_beat == 0 and is_subject == True:
+            pitch = notes[0]
+        
+        # If the randomized duration doesn't fit in the bar, make it fit
+        if 1/duration > 1 - bar.current_beat:
+            duration = 1 / (1- bar.current_beat)
+        
+        # Place the new note in the bar
+        bar.place_notes(pitch, duration)
+    
+    # Create a track to contain the randomized bar
+    track = Track()
+    track + bar
+    
+    # Return the track
+    return track
+
+
+
+
+
+
 #----------------------------------
 # TODO
 #-----------------------------------
-#Init random track
+
 #augumentation/diminition
 #.....
 
