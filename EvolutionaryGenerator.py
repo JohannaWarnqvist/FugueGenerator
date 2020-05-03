@@ -184,6 +184,7 @@ class EvolutionaryGenerator():
         It decides a beat to split and exchange tails after this beat
         between the two chromosomes.
         """
+        # TODO: Find out why bar[0][0] sometimes get error.
         
         # Decide at which semiquaver to cross
         nr_note_slots = self.nr_bars
@@ -265,67 +266,11 @@ class EvolutionaryGenerator():
         
             # Add the new chromosome to the list to be returned
             cross_chromosomes.append(new_chromosome)
-        
-        
-        
-        
-            """notes = chromosomes[iChrom].get_notes()
-            for note in notes:
-                if beat + (1/note[1]) < break_point:
-                    # Testing
-                    if note[1] < 0:
-                        breakpoint()
-                    
-                    # Add the whole note to head
-                    head_chromosome[iChrom].append(note)
-                                
-                elif beat < break_point:
-                    # Split the note in two, with the first one in head and second in tail
-                    
-                    note1 = copy.deepcopy(note)
-                    breakpoint()
-                    print(note1)
-                    
-                    note1[1] = (1/(break_point-beat))
-                    
-                    note2 = copy.copy(note)
-                    note2[1] = 1/((1/note[1]) - (1/note1[1]))
-                    note2[0] = note1[0] + (1/note1[1])
-
-                    # Testing
-                    if note1[1] < 0 or note2[1] < 0:
-                        breakpoint()
-                    
-                    head_chromosome[iChrom].append(note1)
-                    tail_chromosome[iChrom].append(note2)
                 
-                else:
-                    # Testing
-                    if note[1] < 0:
-                        breakpoint()
-                    
-                    # Add the whole note to tail
-                    tail_chromosome[iChrom].append(note)
-                    
-                    
-                beat += 1/note[1]
-          
-        # Create the new chromosomes by combining one chromosomes head with the other's tail.
-        list_cross_chromosomes = [head_chromosome[0] + tail_chromosome[1], head_chromosome[1]+tail_chromosome[0]]
-        
-        cross_chromosomes = [Track(), Track()]
-        for chromosome in list_cross_chromosomes:
-            b = Bar()
-            for note in chromosome:
-                added = b.place_notes(note[2], note[1])
-                if b.is_full:
-                    chromosome.add_bar(b)
-                    b = Bar()
-        """
-        
         return cross_chromosomes
 
     def combine_bars(self, bar1, bar2):
+        # TODO: Find out why bar2[0][0] sometimes get error
     
         #print(f"bar1: {bar1}")
         #print(f"bar2: {bar2}")
@@ -400,7 +345,8 @@ class EvolutionaryGenerator():
         return index_selected
 
 
-    # TODO: Translate to mingus
+    # TODO: Find out why sometimes not the same number of bars is obtained.
+    # Noticed that a note that is partly covered also ends where the bar ends, it is skipped and instead we jump forward one bar.
     def mutate(self, chromosome):
         """Mutate each gene with a certain probability. Can either split the note into two 
         notes of same pitch, shorten tone and add pause at the rest part or longer the note 
@@ -419,6 +365,7 @@ class EvolutionaryGenerator():
         current_beat = 0
         current_bar = 0
         for note in input_notes:
+            ind += 1
             #if current_beat >= 1.0:
             #    current_beat -= 1
             #    current_bar += 1
@@ -451,7 +398,7 @@ class EvolutionaryGenerator():
             if note_beat < current_beat and note_beat != current_beat % 1:
                 new_note_duration = 1/(note_beat + 1/note_duration - current_beat)
                 mutated_chromosome.add_notes(note_pitch, duration = new_note_duration)
-                current_beat += 1/note_duration
+                current_beat += 1/new_note_duration
                 continue
 
             
@@ -470,11 +417,8 @@ class EvolutionaryGenerator():
                     
                     # Add mutated note to the mutated chromosome
                     mutated_chromosome.add_notes(note_pitch, note_duration)
+                    current_beat += 1/note_duration
                 
-                # ==========================================================================
-                # Continue translating here
-                # ==========================================================================                   
-
                 # Or change the length of the note
                 else:
                     
@@ -505,9 +449,10 @@ class EvolutionaryGenerator():
             # If no mutation, add the old note
             else:
                 mutated_chromosome.add_notes(note_pitch, note_duration)
+                current_beat += 1/note_duration
             
             #print(note_duration)        
-            current_beat += 1/note_duration
+            #current_beat += 1/note_duration
             #print(f"curr: {current_beat}")
             
         if len(mutated_chromosome) != self.nr_bars:
@@ -558,7 +503,7 @@ class EvolutionaryGenerator():
         
         if new_note_duration < 0:
             breakpoint()
-        durations.append(new_note_duration)        
+        durations.append(new_note_duration)
            
         length_change = 1/new_note_duration - 1/note_duration
            
