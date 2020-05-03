@@ -77,7 +77,17 @@ def transpose_from_halfnote(track,nmb_of_halfnotes,up =True):
     
     # Return transposed track
     return transposed_track
-   
+
+# A start to a function to use in bar 5 and 6. Does not yet actually do anything.
+# When done, it should be able to transpose a melody from C major to A minor
+"""def transpose_to_relative_minor(track,original_key,harmonic)
+    new_key = intervals.minor_third(original_key)
+    # Get the notes of the minor scale
+    new_scale = scales.get_notes(new_key.lower())
+    # If harmonic minor, use the major 7th
+    if harmonic == True:
+        new_scale[6] = notes.augment(new_scale[6])
+    return track"""
 
 def transpose(track, interval, up):
     "Return a copy of the track, transposed the given interval up if up = True, otherwise down."
