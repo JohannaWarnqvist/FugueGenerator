@@ -17,8 +17,8 @@ class EvolutionaryGenerator():
         #np.random.seed(1)
 
         # == Parameters ==
-        self.population_size = 2
-        self.nr_generations = 2;
+        self.population_size = 10
+        self.nr_generations = 100;
         
         self.probability_rest = 0.05
         
@@ -29,7 +29,7 @@ class EvolutionaryGenerator():
         self.tournament_size = 2;
         self.nr_copies = 1;  
         
-        self.pitch_probability = 0.5
+        self.pitch_probability = 0
         self.pause_probability = 0.5
 
         self.nr_bars = nr_bars
@@ -40,14 +40,33 @@ class EvolutionaryGenerator():
         
         # Deciding here which note lengths that are allowed. Maybe should be done somewhere else?
         #self.possible_lengths = [1, 4/3, 2, 8/3, 4, 16/3, 8, 32/3, 16, 32]
-        self.possible_lengths = [1, 2, 4, 8, 16]
+        self.possible_lengths = [16, 8, 4, 2, 1]
         
+
+    def test_population(self):
+        t = Track()
+        bar = Bar()
+        bar.place_notes('C', 4)
+        bar.place_notes('D', 4)
+        bar.place_notes('E', 4)
+        bar.place_notes('F', 4)
+        t.add_bar(bar)
+        bar = Bar()
+        bar.place_notes('G', 4)
+        bar.place_notes('A', 4)
+        bar.place_notes('B', 4)
+        bar.place_notes('C', 4)
+        t.add_bar(bar)
+        
+        self.population_size = 1
+        
+        return [t]
         
     def run_evolution(self):
         
         # Initialize population
         self.population = self.initialize_population()
-        
+        #self.population = self.test_population()
         
         fitness_values = np.zeros(self.population_size)
         self.max_fitness_value = 0
@@ -74,7 +93,7 @@ class EvolutionaryGenerator():
                 individual_selected = copy.deepcopy(self.population[index_selected])
                 tmp_population.append(individual_selected)
             
-            
+            """
             # == Crossover ==
             for iCross in range(0, self.population_size-1, 2):
                 chromosome1 = self.population[iCross]
@@ -92,14 +111,13 @@ class EvolutionaryGenerator():
             for i in range(self.population_size):
                 tmp_population[i] = self.mutate(tmp_population[i])
             
-            
+                        
             # == Elitism ==            
             tmp_population = self.insert_best_individual(tmp_population, self.best_individual)
             
             
             # == Save generation ==
             self.population = tmp_population
-        """
         
     
     def initialize_population(self, meter = (4,4), min_pitch = -12, max_pitch = 24):
@@ -133,17 +151,11 @@ class EvolutionaryGenerator():
                         bar.place_rest(length)
 
                     else:
-                        # Choose one random tone in the scale
-                        note_letter = rnd.choice(scale_tones)
-                        
-                        # Choose one random octave, with more chance to get close to 4.
-                        octave = round(np.random.normal(loc = 4, scale = 0.5))
-                             
-                        # Note: Might be problematic of a octave number that is too high or too low is chosen.
-                        note = Note(note_letter, octave)
+                        # Randomize a pitch
+                        note_pitch = self.get_random_note_pitch(scale_tones)
                                             
                         # Add note to bar with the decided length                        
-                        bar.place_notes(note, length)
+                        bar.place_notes(note_pitch, length)
 
                 # Add note to subject
                 melody.add_bar(bar)
@@ -152,7 +164,21 @@ class EvolutionaryGenerator():
         
         print(f"Initial population: {population}")
         return population
-    
+
+    def get_random_note_pitch(self, scale_tones):
+        "Generates a note with random pitch"
+        
+        # Choose one random tone in the scale
+        note_letter = rnd.choice(scale_tones)
+        
+        # Choose one random octave, with more chance to get close to 4.
+        octave = round(np.random.normal(loc = 4, scale = 0.5))
+             
+        # Note: Might be problematic if a octave number that is too high or too low is chosen.
+        note = Note(note_letter, octave)
+        
+        return note
+ 
     def cross_over(self, chromosomes):
         """Change chromosome by using crossover between two chromosomes.
         It decides a beat to split and exchange tails after this beat
@@ -163,7 +189,7 @@ class EvolutionaryGenerator():
         nr_note_slots = self.nr_bars
         bar_to_break_in = rnd.randrange(nr_note_slots)
         beat_to_break_at = rnd.randrange(16)/16
-        
+        print(f"bar break: {bar_to_break_in}")
         
         
         # Initialize list to save heads and tails of each chromosome      
@@ -177,13 +203,17 @@ class EvolutionaryGenerator():
             
             bar_nr = 0
             for bar in chromosomes[iChrom]:
+                # Bar before the break bar is added to head
                 if bar_nr < bar_to_break_in:
                     head_chromosome[iChrom].add_bar(bar)
                 
+                # Bar after the break bar is added to tail
                 elif bar_nr > bar_to_break_in:
                     tail_chromosome[iChrom].add_bar(bar)
                 
+                # The break bar is breaked in to parts.
                 else:
+                    # If breaking between bars, add the break bar to the tail
                     if beat_to_break_at == 0:
                         tail_chromosome[iChrom].add_bar(bar)
                         bar_nr += 1
@@ -217,20 +247,22 @@ class EvolutionaryGenerator():
                         
                 bar_nr += 1
         
+        
         middle_bars = []
         cross_chromosomes = []
         for i in range(2):
         
-            # Combine the two middle parts in the new way
-            middle_bars.append(self.combine_bars(end_head_chromosome[i], start_tail_chromosome[1-i]))
-        
-            # Add the changed middlebar to the head_chromosome
-            head_chromosome[i].add_bar(middle_bars[i])
+            if beat_to_break_at != 0:
+                # Combine the two middle parts in the new way
+                middle_bars.append(self.combine_bars(end_head_chromosome[i], start_tail_chromosome[1-i]))
+            
+                # Add the changed middlebar to the head_chromosome
+                head_chromosome[i].add_bar(middle_bars[i])
                 
             # Create a new chromosome by adding the new tail to the head
             Track_Functions.add_tracks(head_chromosome[i], tail_chromosome[1-i])
             new_chromosome = head_chromosome[i]
-            
+        
             # Add the new chromosome to the list to be returned
             cross_chromosomes.append(new_chromosome)
         
@@ -295,6 +327,9 @@ class EvolutionaryGenerator():
 
     def combine_bars(self, bar1, bar2):
     
+        #print(f"bar1: {bar1}")
+        #print(f"bar2: {bar2}")
+
         new_bar = Bar()
         end_bar1 = bar1.current_beat
         start_bar2 = bar2[0][0]
@@ -372,94 +407,168 @@ class EvolutionaryGenerator():
         and delete any notes that where there previously."""
         #mutate the note by either splitting, merging with next or shortening adding a pause
 
-        breakpoint()
         mutated_chromosome = Track()
-        nr_notes_in_chromosome = len(chromosome[1])
-        self.mutation_probability = 2/nr_notes_in_chromosome
+        #print(chromosome)
+        nr_notes_in_chromosome = len([i for i in chromosome.get_notes()])
+        self.mutation_probability = 1 # Testing
+#        self.mutation_probability = 2/nr_notes_in_chromosome
         
-        notes = chromosome.get_notes()
-        
+        input_notes = chromosome.get_notes()
+                
         ind = 0
         current_beat = 0
-        while ind < nr_notes_in_chromosome:
-        
-            # If completely covered by previous note, skip this note
-            if chromosome[ind].beat + chromosome[ind].length <= current_beat:
-                ind += 1
-                continue
+        current_bar = 0
+        for note in input_notes:
+            #if current_beat >= 1.0:
+            #    current_beat -= 1
+            #    current_bar += 1
+            current_beat = (current_beat % 1)
+            #breakpoint()
             
-            # Note: Makes ordinary copy now, might cause trouble if the Note class changes
-            note = copy.copy(chromosome[ind])
-            
-            # Check if the previous note is partly covered by previous note            
-            if chromosome[ind].beat < current_beat:
-                note.length = chromosome[ind].beat + chromosome[ind].length - current_beat
-                note.beat = current_beat
-                mutated_chromosome.append(note)
-
-            else:
-                
-                r = rnd.random()            
-                if r < self.mutation_probability:
-
-                    # Either change the pitch of the note                    
-                    r_pitch = rnd.random()
-                    if r_pitch < self.pitch_probability:
-                        
-                        if note.pitch == None:
-                            if len(mutated_chromosome) < 1:
-                                if chromosome[ind].pitch != None:
-                                    pitch = round(np.random.normal(loc = chromosome[ind].pitch, scale = 4))
-                                else:
-                                    pitch = round(np.random.normal(loc = self.scale.key, scale = 4))
-                            else:
-                                if mutated_chromosome[-1].pitch != None:
-                                    pitch = round(np.random.normal(loc = mutated_chromosome[-1].pitch, scale = 4))
-                                else:
-                                    pitch = round(np.random.normal(loc = self.scale.key, scale = 4))
-                            note.pitch = pitch
-                        else:
-                            pitch_change = round(np.random.normal(scale = 2))
-                            note = copy.copy(chromosome[ind])
-                            note.pitch += pitch_change
-                        mutated_chromosome.append(note)
-                    # Or change the length of the note
-                    else:
-                        # Decide how much to change the length
-                        length_change = round(np.random.normal(scale = chromosome[ind].length*0.25))
-                        if note.length + length_change > 0:
-                            # If the note still has a positive length, make the change and add the note to the chromosome
-                            note.length += length_change
-                            mutated_chromosome.append(note)
-                        else:
-                            # If note length becomes less than zero, set it to zero and set the length_change to negative the previous note length
-                            note.length = 0
-                            length_change = -note.length
-                            
-                        # If making the note shorter, fill up the space
-                        if length_change < 0:                    
-                            # Decide if the note should be split
-                            r_split = rnd.random()
-                            if r_split < self.pause_probability:
-                                new_note_pitch = note.pitch
-                                new_note_length = -length_change
-                                new_note_beat = note.beat + note.length
-                                new_note = Note(new_note_pitch, new_note_length, new_note_beat)
-                                mutated_chromosome.append(new_note)
-                            # If not splitting, add pause for the rest
-                            else:
-                                new_note_pitch = None
-                                new_note_length = -length_change
-                                new_note_beat = note.beat + note.length
-                                new_note = Note(new_note_pitch, new_note_length, new_note_beat)
-                                mutated_chromosome.append(new_note)
-                                current_beat += note.length + new_note.length
+            if current_beat == 0.0:
+                if len(mutated_chromosome) == self.nr_bars:
+                    break
                 else:
-                    mutated_chromosome.append(note)
-            current_beat += note.length
-            ind += 1
-        return mutated_chromosome
+                    current_beat += 1
+            
+            note_beat = note[0]
+            note_duration = note[1]
+            note_pitch = note[2]
+
+            # If completely covered by previous note, skip this note
+            if note_beat < current_beat and note_beat != current_beat % 1:
+                if (note_beat + 1/note_duration) % 1 <= current_beat:
+                
+                    #if (note_beat + 1/note_duration) != 1.0 and current_beat != 0.0:
+                    #print(f"note_beat: {note_beat}")
+                    #print(f"note_duration: {note_duration}")
+                    #print(f"current_beat: {current_beat}")
+                    #breakpoint()
+                    continue
+            
+            
+            # If the previous note is partly covered by previous note, add the not covered part
+            if note_beat < current_beat and note_beat != current_beat % 1:
+                new_note_duration = 1/(note_beat + 1/note_duration - current_beat)
+                mutated_chromosome.add_notes(note_pitch, duration = new_note_duration)
+                current_beat += 1/note_duration
+                continue
+
+            
+            # If not affected by mutations on previous notes, check if this one should be mutated
+                
+            r = rnd.random()            
+            if r < self.mutation_probability:
+                # Mutate this note
+                
+                # Either change the pitch of the note                    
+                r_pitch = rnd.random()
+                if r_pitch < self.pitch_probability:
+                
+                    # Mutate the pitch
+                    note_pitch = self.mutate_pitch(note_pitch)
+                    
+                    # Add mutated note to the mutated chromosome
+                    mutated_chromosome.add_notes(note_pitch, note_duration)
+                
+                # ==========================================================================
+                # Continue translating here
+                # ==========================================================================                   
+
+                # Or change the length of the note
+                else:
+                    
+                    max_duration = 1/(1-(current_beat%1))
+                    #print(max_duration)
+                    # Mutate the duration
+                    note_duration = self.mutate_duration(note_duration, max_duration)
+                    
+                    # Add mutated note to the mutated chromosome
+                    mutated_chromosome.add_notes(note_pitch, note_duration[0])
+                    #print(f"first: {note_duration[0]}")
+                    current_beat += 1/note_duration[0]
+                    #print(f"curr: {current_beat}")
+                    
+                    # If duration change is negative, fill up the empty space with note of
+                    # same pitch or a rest.                    
+                    if len(note_duration) > 1:
+                        r_split = rnd.random()
+                        if r_split < self.pause_probability:
+                            mutated_chromosome.add_notes(note_pitch, note_duration[1])
+                        else:
+                            mutated_chromosome.add_notes(None, note_duration[1])
+                        #print(f"second: {note_duration[1]}")
+                        current_beat += 1/note_duration[1]
+                        #print(f"curr: {current_beat}")
+                    
+                    continue
+            # If no mutation, add the old note
+            else:
+                mutated_chromosome.add_notes(note_pitch, note_duration)
+            
+            #print(note_duration)        
+            current_beat += 1/note_duration
+            #print(f"curr: {current_beat}")
+            
+        if len(mutated_chromosome) != self.nr_bars:
+            #print(f"mutchrom: {mutated_chromosome}")
+            breakpoint()
         
+        #print(f"mutchrom: {mutated_chromosome}")    
+        return mutated_chromosome
+    
+
+    def mutate_pitch(self, note_pitch):
+
+        # If the note was a rest
+        if note_pitch is None:
+            
+            # Check which tones is in the scale
+            scale_tones = scales.get_notes(key = self.key)
+            
+            # Generate a random pitch
+            note_pitch = self.get_random_note_pitch(scale_tones)
+            
+        # If the note had a pitch, change it slightly
+        else:
+            # Decide change of pitch
+            pitch_change = round(np.random.normal(scale = 4))
+            interval_change = Track_Functions.get_interval_from_halfnotes(pitch_change)                        
+            up = (pitch_change > 0)
+            
+            # Change the pitch
+            note_pitch.transpose(interval_change, up)
+
+        return note_pitch
+            
+    def mutate_duration(self, note_duration, max_duration):
+        "Mutates the duration and returns list of new durations"
+    
+        durations = []
+        for ind_max in range(len(self.possible_lengths)):
+            if self.possible_lengths[ind_max] < max_duration:
+                break
+        
+        
+        # Decide how much to change the length
+        new_note_duration = rnd.choice(self.possible_lengths[:ind_max])
+        while 1/new_note_duration > 1/max_duration:
+            new_note_duration = rnd.choice(self.possible_lengths)
+            
+        
+        if new_note_duration < 0:
+            breakpoint()
+        durations.append(new_note_duration)        
+           
+        length_change = 1/new_note_duration - 1/note_duration
+           
+        # If making the note shorter, fill up the space
+        if length_change < 0:                    
+            # Decide if the note should be split
+            second_note_duration = -1/length_change
+            durations.append(second_note_duration)
+        
+        return durations
     
     def calculate_fitness(self, population):
         """Calculate the fitness for each chromosome and return an array
