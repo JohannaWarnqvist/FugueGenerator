@@ -57,6 +57,13 @@ def init_preset_track(num):
     return track
 
 
+# Helper function
+def get_interval_from_halfnotes(nmb_of_halfnotes):
+    "Function that translates number of halfnotes to an interval known to the transpose function."
+    lookup = ["b2"," 2","b3"," 3", " 4", "#4", " 5", "b6", " 6", "b7", " 7"]
+    interval = lookup[abs(nmb_of_halfnotes)-1]
+    return interval
+
 #--------------------------------------------------------------------
 # Transpose NEEDS FIX! 
 # TODO: Transpose doesn't work for transposing more than an octave
@@ -67,8 +74,7 @@ def init_preset_track(num):
 #alt method using nmb_of_halfnotes (an int) as input
 def transpose_from_halfnote(track,nmb_of_halfnotes,up =True):
     #determine interval from nmb_of_steps
-    lookup = ["b2"," 2","b3"," 3", " 4", "#4", " 5", "b6", " 6", "b7", " 7"]
-    interval = lookup[nmb_of_halfnotes-1]
+    get_interval_from_halfnotes(nmb_of_halfnotes)
     
     # Use transpose_track to get a transposed copy of the track
     transposed_track = transpose(track, interval, up)
