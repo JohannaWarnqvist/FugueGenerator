@@ -10,7 +10,9 @@ from mingus.containers import Note
 import mingus.core.intervals as intervals
 import mingus.core.notes as notes
 import mingus.core.scales as scales
+import mingus.core.keys as keys
 import copy
+import random
 
 
 #--------------------------------------------------------------------
@@ -54,6 +56,10 @@ def init_preset_track(num):
         track + "B"
         track + "C-5"
         track + "D-5"
+    if num ==3:
+        test_scale = scales.Major("C")
+        for i in range(7):
+            track + test_scale[i]
     return track
 
 
@@ -81,7 +87,58 @@ def transpose_from_halfnote(track,nmb_of_halfnotes,up =True):
     
     # Return transposed track
     return transposed_track
-   
+
+# A start to a function to use in bar 5 and 6. Does not yet actually do anything.
+# When done, it should be able to transpose a melody from C major to A minor
+"""def transpose_to_relative_minor(track,original_key,harmonic)
+    new_key = intervals.minor_third(original_key)
+    # Get the notes of the minor scale
+    new_scale = scales.get_notes(new_key.lower())
+    # If harmonic minor, use the major 7th
+    if harmonic == True:
+        new_scale[6] = notes.augment(new_scale[6])
+    return track"""
+
+def transpose_to_relative_minor(track, original_key, harmonic):
+    transposed_track = copy.deepcopy(track)
+    if original_key in keys.major_keys:
+        old_scale = keys.get_notes(original_key)
+        new_key = keys.relative_minor(original_key)
+        new_scale = keys.get_notes(new_key)
+        
+        if harmonic:
+            new_scale[6] = notes.augment(new_scale[6])
+            new_scale[6] = notes.reduce_accidentals(new_scale[6])
+        
+        
+        input_notes = transposed_track.get_notes()
+        for bar in input_notes:
+
+            #Check if the nc contained in the bar/"note" is a pause, then do nothing
+            nc = bar[-1]
+            if nc is None:
+                continue
+            
+            #Otherwise
+            else:
+                #For every actual note in the note containers (important if there is a chord)
+                for note in nc:
+                    if note.name in old_scale:
+                        index = old_scale.index(note.name)
+                        note.name = new_scale[index]
+                    else:
+                        note.transpose("b3")
+                        note.name = notes.reduce_accidentals(note.name)
+    else:
+        print("input key is not major key")   
+    return transposed_track
+
+#TEST for Transpose to relative minor 
+""""
+test_track = init_preset_track(2)
+print(test_track)
+print(transpose_to_relative_minor(test_track, "Cb", True))
+"""
 
 def transpose(track, interval, up):
     "Return a copy of the track, transposed the given interval up if up = True, otherwise down."
@@ -203,10 +260,78 @@ def inverse(track):
     #return inversed track
     return inversed_track       
 
+#--------------------------------------------------------------------
+#INIT RANDOM (1-BAR) TRACK
+# Can be used to initalize a random subject, if is_subject is set to True. This gives a random bar that
+# starts on the root note of the key. 
+#--------------------------------------------------------------------
+# Limitations (intended and uninteded) so far:
+#   - duration is either half, quarter or eigth note. This is set to create a 'meaningful' melody.
+#   there could be more options but it should probably be weighed towards these values
+#   - the pitch range is only root to 7th. maybe it would be better to center the range around the root note
+#   - the randomization is uniform
+#   - it can't generate any pauses
+#   - it only returns a single bar (useful for subjects but we might want to create longer random tracks ?)
+# ----------------------------------
+def init_random_track(key, is_subject):
+    notes = keys.get_notes(key)
+    bar = Bar()
+    while bar.current_beat < 1 :
+        # Randomize pitch and duration of each note. 
+        duration = 2**random.randint(1,3)
+        pitch = notes[random.randint(0,6)] 
+        
+        # If it is intened to be a subject, set the first note to the root.
+        if bar.current_beat == 0 and is_subject == True:
+            pitch = notes[0]
+        
+        # If the randomized duration doesn't fit in the bar, make it fit
+        if 1/duration > 1 - bar.current_beat:
+            duration = 1 / (1- bar.current_beat)
+        
+        # Place the new note in the bar
+        bar.place_notes(pitch, duration)
+    
+    # Create a track to contain the randomized bar
+    track = Track()
+    track + bar
+    
+    # Return the track
+    return track
+
+
+#--------------------------------------------------------------------
+#CHANGE-SPEED DONE
+# Changes the speed of a track 
+# up = true if you want to speed up, up = False if you want to slow down
+# factor determines how much to speed up / slow down if factor = 2 we will either dubbel of half the speed 
+#--------------------------------------------------------------------
+def change_speed(track, factor, up=True):
+    changed_track = Track()
+    #if factor is 0 we return an empty track
+    if (factor != 0.0) : 
+
+        input_track = copy.deepcopy(track)
+        input_notes = input_track.get_notes()
+
+        #if we want to speed up (notespeed *= factor)
+        if up:
+            for note in input_notes:
+                changed_track.add_notes(note[-1],int(note[1]*factor))
+
+        #if we want to slow down (notespeed *= (1/factor))
+        else:
+            for note in input_notes:
+                changed_track.add_notes(note[-1], int(note[1]/factor))
+                
+
+    return changed_track    
+
 #----------------------------------
 # TODO
 #-----------------------------------
-#Init random track
-#augumentation/diminition
-#.....
 
+#augumentation/diminition
+
+
+#ev. normalize notes to scale?
