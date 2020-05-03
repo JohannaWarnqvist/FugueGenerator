@@ -66,7 +66,7 @@ def generate_fugue(key,subject):
  
 
 #Test for debugging
-test_track = Track_Functions.init_preset_track(2)
+test_track = Track_Functions.init_random_track("C",True)
 generate_fugue("C",test_track)
 
 

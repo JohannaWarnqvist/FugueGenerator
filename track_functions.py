@@ -254,10 +254,11 @@ def inverse(track):
     #return inversed track
     return inversed_track       
 
-# INIT RANDOM (1-BAR) TRACK ---------
+#--------------------------------------------------------------------
+#INIT RANDOM (1-BAR) TRACK
 # Can be used to initalize a random subject, if is_subject is set to True. This gives a random bar that
 # starts on the root note of the key. 
-#
+#--------------------------------------------------------------------
 # Limitations (intended and uninteded) so far:
 #   - duration is either half, quarter or eigth note. This is set to create a 'meaningful' melody.
 #   there could be more options but it should probably be weighed towards these values
@@ -293,9 +294,32 @@ def init_random_track(key, is_subject):
     return track
 
 
+#--------------------------------------------------------------------
+#CHANGE-SPEED DONE
+# Changes the speed of a track 
+# up = true if you want to speed up, up = False if you want to slow down
+# factor determines how much to speed up / slow down if factor = 2 we will either dubbel of half the speed 
+#--------------------------------------------------------------------
+def change_speed(track, factor, up=True):
+    changed_track = Track()
+    #if factor is 0 we return an empty track
+    if (factor != 0.0) : 
 
+        input_track = copy.deepcopy(track)
+        input_notes = input_track.get_notes()
 
+        #if we want to speed up (notespeed *= factor)
+        if up:
+            for note in input_notes:
+                changed_track.add_notes(note[-1],int(note[1]*factor))
 
+        #if we want to slow down (notespeed *= (1/factor))
+        else:
+            for note in input_notes:
+                changed_track.add_notes(note[-1], int(note[1]/factor))
+                
+
+    return changed_track    
 
 #----------------------------------
 # TODO
