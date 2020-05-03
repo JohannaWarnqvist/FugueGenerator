@@ -56,6 +56,10 @@ def init_preset_track(num):
         track + "B"
         track + "C-5"
         track + "D-5"
+    if num ==3:
+        test_scale = scales.Major("C")
+        for i in range(7):
+            track + test_scale[i]
     return track
 
 
@@ -88,6 +92,47 @@ def transpose_from_halfnote(track,nmb_of_halfnotes,up =True):
     if harmonic == True:
         new_scale[6] = notes.augment(new_scale[6])
     return track"""
+
+def transpose_to_relative_minor(track, original_key, harmonic):
+    transposed_track = copy.deepcopy(track)
+    if original_key in keys.major_keys:
+        old_scale = keys.get_notes(original_key)
+        new_key = keys.relative_minor(original_key)
+        new_scale = keys.get_notes(new_key)
+        
+        if harmonic:
+            new_scale[6] = notes.augment(new_scale[6])
+            new_scale[6] = notes.reduce_accidentals(new_scale[6])
+        
+        
+        input_notes = transposed_track.get_notes()
+        for bar in input_notes:
+
+            #Check if the nc contained in the bar/"note" is a pause, then do nothing
+            nc = bar[-1]
+            if nc is None:
+                continue
+            
+            #Otherwise
+            else:
+                #For every actual note in the note containers (important if there is a chord)
+                for note in nc:
+                    if note.name in old_scale:
+                        index = old_scale.index(note.name)
+                        note.name = new_scale[index]
+                    else:
+                        note.transpose("b3")
+                        note.name = notes.reduce_accidentals(note.name)
+    else:
+        print("input key is not major key")   
+    return transposed_track
+
+#TEST for Transpose to relative minor 
+""""
+test_track = init_preset_track(2)
+print(test_track)
+print(transpose_to_relative_minor(test_track, "Cb", True))
+"""
 
 def transpose(track, interval, up):
     "Return a copy of the track, transposed the given interval up if up = True, otherwise down."
