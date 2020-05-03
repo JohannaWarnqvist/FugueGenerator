@@ -326,5 +326,6 @@ def change_speed(track, factor, up=True):
 #-----------------------------------
 
 #augumentation/diminition
-#.....
 
+
+#ev. normalize notes to scale?
