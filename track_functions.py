@@ -28,6 +28,30 @@ def add_tracks(track1, track2):
 
 
 #--------------------------------------------------------------------
+#INPUT 
+#Turns a list of tuples (note name, dote duration) into a usable track
+# Note, you must fill each bar individually otherwise the note will cut to fit bar
+# You can add pauses by setting note name to None
+#ex input [("C",2),("D",4),("F",4),("G",1)]
+#TODO look into midi input
+#--------------------------------------------------------------------
+def input_list(list_of_note_tuples):
+    #track to return
+    track = Track()
+
+    #For every tuple in input
+    for (name,duration) in list_of_note_tuples:
+
+        #If we can't add note (duration is too long)
+        if not (track.add_notes(name, duration)):
+            #Calculate new duration to fit bar and add note
+            space_left = track[-1].space_left()
+            track.add_notes(name, int(1.0/space_left))
+
+    return track
+
+
+#--------------------------------------------------------------------
 #INIT PRESETS
 #TODO: Write better and more thought out presets for testing 
 #--------------------------------------------------------------------
