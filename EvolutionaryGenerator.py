@@ -17,19 +17,20 @@ class EvolutionaryGenerator():
         #np.random.seed(1)
 
         # == Parameters ==
-        self.population_size = 10
+        self.population_size = 100
         self.nr_generations = 100;
         
         self.probability_rest = 0.05
         
         self.crossover_probability = 0.8;
-        self.mutation_probability = 1/(nr_bars*4);
         self.tournament_selection_parameter = 0.75;
+        
+        # Mutation probability different for different chromosomes, therefore decided in the mutate function.
         
         self.tournament_size = 2;
         self.nr_copies = 1;  
         
-        self.pitch_probability = 0
+        self.pitch_probability = 0.5
         self.pause_probability = 0.5
 
         self.nr_bars = nr_bars
@@ -93,7 +94,8 @@ class EvolutionaryGenerator():
                 individual_selected = copy.deepcopy(self.population[index_selected])
                 tmp_population.append(individual_selected)
             
-            """
+            
+            # TODO: fix some error in crossover
             # == Crossover ==
             for iCross in range(0, self.population_size-1, 2):
                 chromosome1 = self.population[iCross]
@@ -105,8 +107,7 @@ class EvolutionaryGenerator():
                     tmp_population[iCross] = crossed_pair[0]
                     tmp_population[iCross + 1] = crossed_pair[1]
                 
-            # TODO: Add the rest of the algorithm when they are translated to mingus 
-            """
+            
             # == Mutation ==            
             for i in range(self.population_size):
                 tmp_population[i] = self.mutate(tmp_population[i])
@@ -345,8 +346,6 @@ class EvolutionaryGenerator():
         return index_selected
 
 
-    # TODO: Find out why sometimes not the same number of bars is obtained.
-    # Noticed that a note that is partly covered also ends where the bar ends, it is skipped and instead we jump forward one bar.
     def mutate(self, chromosome):
         """Mutate each gene with a certain probability. Can either split the note into two 
         notes of same pitch, shorten tone and add pause at the rest part or longer the note 
@@ -356,8 +355,9 @@ class EvolutionaryGenerator():
         mutated_chromosome = Track()
         #print(chromosome)
         nr_notes_in_chromosome = len([i for i in chromosome.get_notes()])
-        self.mutation_probability = 1 # Testing
-#        self.mutation_probability = 2/nr_notes_in_chromosome
+        
+        #self.mutation_probability = 1 # Testing
+        mutation_probability = 2/nr_notes_in_chromosome
         
         input_notes = chromosome.get_notes()
                 
@@ -384,7 +384,7 @@ class EvolutionaryGenerator():
 
             # If completely covered by previous note, skip this note
             if note_beat < current_beat and note_beat != current_beat % 1:
-                if (note_beat + 1/note_duration) % 1 <= current_beat:
+                if note_beat + 1/note_duration <= current_beat:
                 
                     #if (note_beat + 1/note_duration) != 1.0 and current_beat != 0.0:
                     #print(f"note_beat: {note_beat}")
@@ -405,7 +405,7 @@ class EvolutionaryGenerator():
             # If not affected by mutations on previous notes, check if this one should be mutated
                 
             r = rnd.random()            
-            if r < self.mutation_probability:
+            if r < mutation_probability:
                 # Mutate this note
                 
                 # Either change the pitch of the note                    
@@ -473,16 +473,25 @@ class EvolutionaryGenerator():
             
             # Generate a random pitch
             note_pitch = self.get_random_note_pitch(scale_tones)
-            
+            octave_change = None
+
         # If the note had a pitch, change it slightly
         else:
-            # Decide change of pitch
+            # Decide change of pitch in halfnotes
             pitch_change = round(np.random.normal(scale = 4))
-            interval_change = Track_Functions.get_interval_from_halfnotes(pitch_change)                        
+            octave_change = 0
+            if abs(pitch_change) > 11:
+                octave_change = pitch_change // 12
+                pitch_change = pitch_change - 12*octave_change
+                                
+            interval_change = Track_Functions.get_interval_from_halfnotes(pitch_change)
             up = (pitch_change > 0)
             
-            # Change the pitch
-            note_pitch.transpose(interval_change, up)
+            # Change the pitch (which is a NoteContainer)
+            note_pitch = note_pitch.transpose(interval_change, up)
+            for each_note_pitch in note_pitch:
+                each_note_pitch.change_octave(octave_change)
+                
 
         return note_pitch
             
