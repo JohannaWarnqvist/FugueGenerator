@@ -9,7 +9,7 @@ import track_functions as Track_Functions
 
 class EvolutionaryGenerator():
 
-    def __init__(self, key, nr_bars = 2):
+    def __init__(self, key, nr_bars = 2, fitness_function = 'C', global_max = 2):
         "Initialize all the parameters"
         
         # When testing to regenerate same case:
@@ -17,8 +17,10 @@ class EvolutionaryGenerator():
         #np.random.seed(1)
 
         # == Parameters ==
+        self.fitness_function = fitness_function
+        
         self.population_size = 100
-        self.nr_generations = 100;
+        self.nr_generations = 1000;
         
         self.probability_rest = 0.05
         
@@ -36,13 +38,13 @@ class EvolutionaryGenerator():
         self.nr_bars = nr_bars
         self.key = key
         
+        self.global_max = global_max
         self.best_individual = None
         self.max_fitness_value = 0
         
         # Deciding here which note lengths that are allowed. Maybe should be done somewhere else?
         #self.possible_lengths = [1, 4/3, 2, 8/3, 4, 16/3, 8, 32/3, 16, 32]
         self.possible_lengths = [16, 8, 4, 2, 1]
-        
 
     def test_population(self):
         t = Track()
@@ -74,7 +76,7 @@ class EvolutionaryGenerator():
         for iGen in range(self.nr_generations):
             
             # == Calculate fitness and save best individual ==
-            fitness_values = self.calculate_fitness(self.population)
+            fitness_values = self.calculate_fitness(self.population, self.fitness_function)
             
             # Save a copy of the best individual
             best_individual_index = np.argmax(fitness_values)        
@@ -86,6 +88,8 @@ class EvolutionaryGenerator():
                 print(f"Best individual: {self.best_individual}")
                 print(f"Fitness: {fitness_values[best_individual_index]}")
                 self.max_fitness_value = fitness_values[best_individual_index]
+                if self.max_fitness_value == self.global_max:
+                    break
             
             # == Tournament selection ==
             tmp_population = []
@@ -95,7 +99,6 @@ class EvolutionaryGenerator():
                 tmp_population.append(individual_selected)
             
             
-            # TODO: fix some error in crossover
             # == Crossover ==
             for iCross in range(0, self.population_size-1, 2):
                 chromosome1 = self.population[iCross]
@@ -119,7 +122,6 @@ class EvolutionaryGenerator():
             
             # == Save generation ==
             self.population = tmp_population
-        
     
     def initialize_population(self, meter = (4,4), min_pitch = -12, max_pitch = 24):
         """Create the population consisting of the wanted number of
@@ -191,7 +193,6 @@ class EvolutionaryGenerator():
         nr_note_slots = self.nr_bars
         bar_to_break_in = rnd.randrange(nr_note_slots)
         beat_to_break_at = rnd.randrange(16)/16
-        print(f"bar break: {bar_to_break_in}")
         
         
         # Initialize list to save heads and tails of each chromosome      
@@ -213,7 +214,7 @@ class EvolutionaryGenerator():
                 elif bar_nr > bar_to_break_in:
                     tail_chromosome[iChrom].add_bar(bar)
                 
-                # The break bar is breaked in to parts.
+                # The break bar is breaked in two parts.
                 else:
                     # If breaking between bars, add the break bar to the tail
                     if beat_to_break_at == 0:
@@ -223,21 +224,23 @@ class EvolutionaryGenerator():
                     
                     beat = 0
                     note_index = 0
-                    note_pitch = bar[note_index][2]
-                    note_duration = bar[note_index][1]
-                    print(f"break beat: {beat_to_break_at}")
                     while beat < 1.0:
-                        print(f"current beat = {beat}")
+                        note_pitch = bar[note_index][2]
+                        note_duration = bar[note_index][1]
+                    
+                        # If note stops before or at breakpoint, add to first part
                         if beat + 1/bar[note_index][1] <= beat_to_break_at:
                             end_head_chromosome[iChrom].place_notes(note_pitch, note_duration)
                         
+                        # If note starts at or after breakpoint, add to second part
                         elif beat >= beat_to_break_at:
+                            # If the first one after break, add it at the breakpoint. Otherwise, add it after the previous.
                             if beat == beat_to_break_at:
                                 start_tail_chromosome[iChrom].current_beat = beat_to_break_at
                                 
                             start_tail_chromosome[iChrom].place_notes(note_pitch, note_duration)
                         
-                        else:                            
+                        else:  
                             # Divide to one part from beat to breakpoint, and one the length left over starting at breakpoint
                             first_part_duration = 1/(beat_to_break_at - beat)
                             second_part_duration = 1/(1/note_duration - 1/first_part_duration)
@@ -246,6 +249,7 @@ class EvolutionaryGenerator():
                             start_tail_chromosome[iChrom].current_beat = beat_to_break_at
                             start_tail_chromosome[iChrom].place_notes(note_pitch, second_part_duration)
                         beat += 1/bar[note_index][1]
+                        note_index += 1
                         
                 bar_nr += 1
         
@@ -257,7 +261,7 @@ class EvolutionaryGenerator():
             if beat_to_break_at != 0:
                 # Combine the two middle parts in the new way
                 middle_bars.append(self.combine_bars(end_head_chromosome[i], start_tail_chromosome[1-i]))
-            
+                
                 # Add the changed middlebar to the head_chromosome
                 head_chromosome[i].add_bar(middle_bars[i])
                 
@@ -267,7 +271,7 @@ class EvolutionaryGenerator():
         
             # Add the new chromosome to the list to be returned
             cross_chromosomes.append(new_chromosome)
-                
+        
         return cross_chromosomes
 
     def combine_bars(self, bar1, bar2):
@@ -311,7 +315,6 @@ class EvolutionaryGenerator():
         
         return new_bar
 
-    
     def tournament_selection(self, fitness_values, 
             tournament_selection_parameter, tournament_size):
         "Select index of new individual by using tournament selection"
@@ -344,7 +347,6 @@ class EvolutionaryGenerator():
                 return index_selected
         index_selected = sort_index[-1]
         return index_selected
-
 
     def mutate(self, chromosome):
         """Mutate each gene with a certain probability. Can either split the note into two 
@@ -461,7 +463,6 @@ class EvolutionaryGenerator():
         
         #print(f"mutchrom: {mutated_chromosome}")    
         return mutated_chromosome
-    
 
     def mutate_pitch(self, note_pitch):
 
@@ -524,7 +525,7 @@ class EvolutionaryGenerator():
         
         return durations
     
-    def calculate_fitness(self, population):
+    def calculate_fitness_C(self, population):
         """Calculate the fitness for each chromosome and return an array
         with the fitness values
         """
@@ -536,7 +537,7 @@ class EvolutionaryGenerator():
             
             for note in notes:
                 if note[-1] is None:
-                        fitness += note[1]*1/self.nr_bars
+                        fitness += (1/note[1])*1/self.nr_bars
                 else:
                     distance = Note('C').measure(note[-1][0])
                     fitness += (note[1] * 10*abs(distance))/self.nr_bars
@@ -548,8 +549,29 @@ class EvolutionaryGenerator():
         
         return fitness_values
     
+    def calculate_fitness(self, population, fitness_function = 'C'):
+        "Calls on the wanted fitness function"
+        if fitness_function == 'C':
+            fitness_values = self.calculate_fitness_C(population)
+        elif fitness_function == 'pauses':
+            fitness_values = self.calculate_fitness_pauses(population)
+
+        return fitness_values
     
-    # TODO: Translate to mingus
+    def calculate_fitness_pauses(self, population):
+        fitness_values = np.zeros(self.population_size)
+        for iPop in range(self.population_size):
+            melody = population[iPop]
+            fitness = 0
+            notes = melody.get_notes()
+            
+            for note in notes:
+                if note[-1] is None:
+                        fitness += 1/note[1]
+                        
+            fitness_values[iPop] = fitness
+        return fitness_values
+    
     def insert_best_individual(self, tmp_population, best_individual):
         """Insert the individual with highest fitness in the previous
         generation to the new generation.
