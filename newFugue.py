@@ -56,6 +56,8 @@ def generate_fugue(key,subject):
     fugue.add_track(first_voice)
     fugue.add_track(second_voice)
 
+    
+
     #Generate lilypond file for fugue named final_fugue
     finished_fugue = LilyPond.from_Composition(fugue)
     to_LilyPond_file(finished_fugue,"final_fugue")

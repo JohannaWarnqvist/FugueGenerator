@@ -11,21 +11,100 @@ import mingus.core.intervals as intervals
 import mingus.core.notes as notes
 import mingus.core.scales as scales
 import mingus.core.keys as keys
+import mingus.midi.midi_file_in as midi
 import copy
 import random
 
 
 #--------------------------------------------------------------------
-#HELPER FUNCTIONS 
-#TODO: write a function for merging two tracks into 1 (play both tracks simultaneously)
+#HELPER FUNCTIONS FOR TRACK OPERATIONS 
 #--------------------------------------------------------------------
 
+#adds two tracks to make a sequence 
 def add_tracks(track1, track2):
     for i in range(len(track2)):  
         track1.add_bar(track2[i])
 
-#def merge_tracks(track1,track2):
+# Merges two tracks (One track where both are played simultaneously)
+#Tracks do not have to be of the same length
+#Ev. problem Notes cannot overlap, notes that do overlap are cut to fit 
+def merge_tracks(track1,track2):
+    merged_track = Track()
+    #Copy inputs to prevent overwriting
+    track1_notes = copy.deepcopy(track1).get_notes()
+    track2_notes = copy.deepcopy(track2).get_notes()
+    
+    #Bool that indicates if we should read in the next note in track2
+    next_note2 = True
 
+    for note1 in track1_notes:
+        #Bool that indicates if we should read in the next note in track1
+        next_note1 = False
+
+        #If we want to read in the next note in track 2 attempt to do so
+        if next_note2:
+            try:
+                note2 = next(track2_notes)
+            #If generator is empty(we have already added all notes from track 2) just add the next note from track1
+            except StopIteration:
+                merge_tracks.add_notes(note1[-1],note1[1])
+                continue
+        
+        #While loop to check if we have added the current note1
+        while(not next_note1):
+            #In this part we compare the current note from track1 (note1) and current node from track2(note2)
+
+            #If notes start at the same time
+            if note1[0] == note1[0]:
+                #Determine the added notecontainer value, if any of the notes is a oause add the value of the other note
+                if note1[-1] is None:
+                    nc = note2[-1]
+                elif note2[-1] is None:
+                    nc = note1[-1]
+                else:
+                    nc = note1[-1] + note2[-1] 
+
+                # if the notes have different length always use the shortest one
+                if note1[1] > note2[1]:
+                    merged_track.add_notes(nc,note1[2])
+                else:
+                    merged_track.add_notes(nc,note1[1])
+                
+                next_note1 = True #read in next note from track1
+                next_note2 = True #read in next note from track2
+
+            #If note1 starts before note2
+            elif note1[0] < note2[0]:
+                #Determine time until next note in track2
+                time_to_next = int(1.0/(note2[0] - note1[0]))
+
+                #If length of note1 is bigger than time until next note in track2 then cut lenght to fit
+                if note1[1] > time_to_next:
+                    merged_track.add_notes(nc,time_to_next)
+                #Otherwise add note as normal
+                else: 
+                    merged_track.add_notes(nc,note1[1])
+
+                next_note1 = True  #read in next note from track1
+                next_note2 = False #do not read in next note from track2
+
+            #If note2 starts before note1
+            else:
+                #If length of note2 is bigger than time until next note in track1 then cut lenght to fit
+                temp = int(1.0/(note1[0] - note2[0]))
+                if note2[1] > temp:
+                    merged_track.add_notes(nc,temp)
+                else: 
+                    merged_track.add_notes(nc,note2[1])
+                
+                next_note2 = True #read in next note from track2
+                                  #do not read in next note from track1 (default)
+
+    #Add remaining notes if any from track2
+    for note2 in track2_notes:
+        merged_tracks.add_notes(note2[-1],note2[0])
+
+    return merged_track
 
 #--------------------------------------------------------------------
 #INPUT 
@@ -50,7 +129,6 @@ def input_list(list_of_note_tuples):
 
     return track
 
-
 #--------------------------------------------------------------------
 #INIT PRESETS
 #TODO: Write better and more thought out presets for testing 
@@ -58,6 +136,7 @@ def input_list(list_of_note_tuples):
 def init_preset_track(num):
     track = Track()
     if num==1: #C-chord
+        track + "Gb"
         nc = NoteContainer(["C","E"])
         track.add_notes(nc)
         track + "E"
@@ -375,6 +454,7 @@ def change_speed(track, factor, up=True):
 #----------------------------------
 # TODO
 #-----------------------------------
+
 
 #augumentation/diminition
 
