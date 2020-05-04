@@ -33,6 +33,19 @@ Använda functional harmonies i genereringen av melodier.
 Använda evolutionary algorithms för att generera ett counter subject.
 
 
+
+
+* Fitness function
+	- Överstämma till godtycklig melodi (countersubject)
+	- Understämma till godtycklig melodi
+	- Mellanspel som binder ihop slutet på en takt med början på en annan takt
+	- Sammansättning av olika delar som bygger upp en fuga
+	- Bestämma ackordföljder
+	- Subject
+
+
+
+
 =============================
 
 Typ klart:
