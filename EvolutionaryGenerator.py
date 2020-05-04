@@ -2,10 +2,10 @@ import random as rnd
 import numpy as np
 import copy
 import math
-import copy
 from mingus.core import *
 from mingus.containers import *
 import track_functions as Track_Functions
+import fitness_functions as Fitness_Functions 
 
 class EvolutionaryGenerator():
 
@@ -47,6 +47,8 @@ class EvolutionaryGenerator():
         self.possible_lengths = [16, 8, 4, 2, 1]
 
     def test_population(self):
+        "Returns a population consisting of a single individual which is the C-scale."
+
         t = Track()
         bar = Bar()
         bar.place_notes('C', 4)
@@ -525,53 +527,16 @@ class EvolutionaryGenerator():
         
         return durations
     
-    def calculate_fitness_C(self, population):
-        """Calculate the fitness for each chromosome and return an array
-        with the fitness values
-        """
-        fitness_values = np.zeros(self.population_size)        
-        for iPop in range(self.population_size):
-            melody = population[iPop]
-            fitness = 0
-            notes = melody.get_notes()
-            
-            for note in notes:
-                if note[-1] is None:
-                        fitness += (1/note[1])*1/self.nr_bars
-                else:
-                    distance = Note('C').measure(note[-1][0])
-                    fitness += (note[1] * 10*abs(distance))/self.nr_bars
-
-            if fitness == 0:
-                fitness_values[iPop] = 2
-            else:
-                fitness_values[iPop] = 1/fitness
+    def calculate_fitness(self, population):
+        "Calls on the wanted fitness function using self and the population as arguments."
         
-        return fitness_values
-    
-    def calculate_fitness(self, population, fitness_function = 'C'):
-        "Calls on the wanted fitness function"
         if fitness_function == 'C':
-            fitness_values = self.calculate_fitness_C(population)
+            fitness_values = Fitness_Functions.calculate_fitness_C(self, population)
         elif fitness_function == 'pauses':
-            fitness_values = self.calculate_fitness_pauses(population)
+            fitness_values = Fitness_Functions.calculate_fitness_pauses(self,population)
 
         return fitness_values
-    
-    def calculate_fitness_pauses(self, population):
-        fitness_values = np.zeros(self.population_size)
-        for iPop in range(self.population_size):
-            melody = population[iPop]
-            fitness = 0
-            notes = melody.get_notes()
-            
-            for note in notes:
-                if note[-1] is None:
-                        fitness += 1/note[1]
-                        
-            fitness_values[iPop] = fitness
-        return fitness_values
-    
+   
     def insert_best_individual(self, tmp_population, best_individual):
         """Insert the individual with highest fitness in the previous
         generation to the new generation.
