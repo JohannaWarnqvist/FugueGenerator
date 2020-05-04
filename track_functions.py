@@ -78,12 +78,33 @@ def get_interval_from_halfnotes(nmb_of_halfnotes):
 #--------------------------------------------------------------------
 
 #alt method using nmb_of_halfnotes (an int) as input
-def transpose_from_halfnote(track,nmb_of_halfnotes,up =True):
-    #determine interval from nmb_of_steps
-    get_interval_from_halfnotes(nmb_of_halfnotes)
-    
-    # Use transpose_track to get a transposed copy of the track
-    transposed_track = transpose(track, interval, up)
+def transpose_from_halfnote(track,nmb_of_halfnotes,up = True):
+    #breakpoint()
+    octave_change = 0
+    if nmb_of_halfnotes > 11:
+        octave_change = nmb_of_halfnotes // 12
+        nmb_of_halfnotes = nmb_of_halfnotes - 12*octave_change
+        
+        
+
+    if nmb_of_halfnotes != 0:
+        #determine interval from nmb_of_steps
+        interval = get_interval_from_halfnotes(nmb_of_halfnotes)
+        
+        # Use transpose_track to get a transposed copy of the track
+        transposed_track = transpose(track, interval, up)
+    else:
+        transposed_track = copy.deepcopy(track)
+        
+    if octave_change != 0:
+        notes_input = transposed_track.get_notes()
+        for note_description in notes_input:
+            note_construction = note_description[-1]
+            if note_construction is None:
+                continue
+            else:
+                for note in note_construction:
+                    note.change_octave(octave_change)
     
     # Return transposed track
     return transposed_track
