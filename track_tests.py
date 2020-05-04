@@ -10,6 +10,8 @@
 #Are notes is scale?
 #Are notes the same?
 #Are note tempos same?
+# Measure interval between track?
+# Measure intervals on beast?
 #Measure repetition
 #Does notes follow progression?
 #.....
