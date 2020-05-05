@@ -14,4 +14,11 @@
 # Measure intervals on beast?
 #Measure repetition
 #Does notes follow progression?
+#Implied harmonic motion 
+#Measure "walking" on sacle
+#Number of chords
+#Circle of fifths?
+
 #.....
+
+#Using existing fugues for the comparisons to determine the weights for the different fitness functions
