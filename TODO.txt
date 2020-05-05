@@ -1,59 +1,75 @@
-﻿Den matematiska modellen:
-# Create development in minor in bar 5 and 6. 
-    # Transposed -3 to minor + (stämma i för second voice tills vidare tom)
+﻿TODO:
+----------------------------------------------
+NewFugue:
+1. Create development in minor in bar 5 and 6. 
+- Transposed -3 to minor + (stämma where second voice is empty during exposition 
+ (this part can be left empty until EG is finished)
  
-    # Create canon in bar 9 and 10.
-    # subject i first voice
-    # second voice is subject but shifted (half a bar for now)
+2. Create canon in bar 9 and 10.
+- subject in first voice
+- second voice is subject but shifted (half a bar for now)
 
-test
+3. (Johanna - in progress) Fining skeleton code for EG parts(insert EG function calls that generates "bad stuff" until fitness functions 
+are complete. 
 
-Eg fitness functions:
-Överstämma /Understämma (Kan användas som countersubject och stämma)
-Melodi som bygger ihop två delar( stämma till denna kan genereras med ovanför)
-Slutmelodi
+----------------------------------------------
+fitness-functions:
+1. Överstämma /Understämma (Kan användas som countersubject och stämma)
+
+2. Melodi som bygger ihop två delar( stämma till denna kan genereras med ovanför)
+
+3. Slutmelodi
+
+4. (Emilie - in progress) Använda torbjörns ide om att använda redan existerande fugor för att avgöra vikter
 
 (Om vi har tid)
 Generera subject
-(Använda torbjörns ide om att använda redan existerande fugor för att avgöra vikter)
 
+------------------------------------------------
 Track_test (measure):
+Generella testfunktioner för alla fitnessfunktioner:
 
-Stämma:
+Intervall tester:
 Tonerna funkar tillsammans med melodin (vettiga intervall mellan subject) (is_consonant)
 Mäter interval på taktslag
 Mäter interval på hela låten (Kollar så att noter har “bra” interval men även så att samma intervall inte upprepas genom hela)
-Om stämman i sig är en hyfsat vettig melodi
-Skalor
-Rimliga intervall inom stämman
-Lagom variation (entropi, ska vara groove)
+Rimliga intervall inom stämman (inte för många stora intervall hopp)
+
+Skalor:
+Hur många noter är i skalan
+
+Variation/Repetition:
 Mäta mängd exakt lika noter 
 Mäta passager som upprepas (repetition)
-Mäta om noter efter varandra skapar tillfälliga harmonic motions (t.ex. C-E-G eller D-F#-A)
-Ackordföljder i varje takt
+
+Notlängder / Clutter:
 Kolla om duration är samma för större passager 
 Kolla att not-duration är mer grupperat.
-Mäta progression (tonic-subdominant-dominant)
 Mäta mängden ackord i ett track (för många blir jobbigt att lyssna på)
+
+Progression:
+Mäta om noter efter varandra skapar tillfälliga harmonic motions (t.ex. C-E-G eller D-F#-A)
+Ackordföljder i varje takt
+Mäta progression (tonic-subdominant-dominant)
+
+Ackord + taktslag:
 Mäta hur många av not-durations som hamnar på sitt “rätta slag i låten. Ex. åttondelar på något åttondelsslag, fjärdedelar på ett fjärdedelsslag (inte på ett åttondelsslag) osv.
 Ackord som är i rätt tonart
 
-Melodi som binder samman:
-
-Binda ihop två redan existerande delar
+Test för fitness 2 (Melodi som binder samman):
 Första noten ska passa med sista i den innan
 Sista noten ska passa med första i den efter
 Vägen mellan ska vara snyggt modellerad om det behövs
 Ackordföljd/progression
 
-Slut:
+Test för fitness 3 (Slut):
 Tillfredsställande avslutande progression. 
 Finns det en bra avslutande not? Grundtonen, troligen.
-
-Eg mutation:
-Kanske byta från antal halvsteg till antal steg i fifth-skalan?
-Note duration normalisation (Gaussian)
-Wildness variable
-
+--------------------------------------------------
+EG mutation:
+1. Kanske byta från antal halvsteg till antal steg i fifth-skalan?
+2. Note duration normalisation (Gaussian)
+3. Wildness variable
+---------------------------------------------------
 Track_functions:
-Shift: Canon . 
+1. Shift/Canon. Returns track that is shifted x duration (used for NewFugue)
