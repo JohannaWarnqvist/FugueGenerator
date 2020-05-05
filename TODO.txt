@@ -1,72 +1,58 @@
-﻿TODO
-
-Create counter subject
-
-How to solve when some tone in answer isn't in scale
-
-Output
-   Printa ut tonnamn och längd på nåt smidigt och läsbart sätt.
-   Just nu går det att printa, men är svårläst.
-
-Create second voice in bar 5.
-
-Create the more free parts in bar 3-4, 7-8 and 11-12.
-
-Create a way to easily add a new subject.
-
-Slumpa melodier gaussiskt för att få mer melodisk slump
-
-Bestäm mer definitivt hur beats och length i ton klasser ska se ut och fungera 
-ev använd midi standard för att referefa till noter
-
-Skicka in en lista i subject "creation" metoden dvs. skicka in en färdig melodi
-
-implementera alla alterneringar på subjektet som nämns i videon för fugor: inversion , baklänges, dubbel/halvtempo... 
-
-(implementera olia modes för skalor)OBS! lägg inte till i random processen utan är endast
-alternativ för användaren att välja mellan flera
-
-Skapa klass för melodier. Subject och countersubject kan ärva från den. Finns ett förslag i en branch, men behöver ses över och eventuellt dela upp så att klasserna som ärver ligger i separata filer 
-
-Använda functional harmonies i genereringen av melodier.
-
-Använda evolutionary algorithms för att generera ett counter subject.
+﻿Den matematiska modellen:
+# Create development in minor in bar 5 and 6. 
+    # Transposed -3 to minor + (stämma i för second voice tills vidare tom)
+ 
+    # Create canon in bar 9 and 10.
+    # subject i first voice
+    # second voice is subject but shifted (half a bar for now)
 
 
+Eg fitness functions:
+Överstämma /Understämma (Kan användas som countersubject och stämma)
+Melodi som bygger ihop två delar( stämma till denna kan genereras med ovanför)
+Slutmelodi
 
+(Om vi har tid)
+Generera subject
+(Använda torbjörns ide om att använda redan existerande fugor för att avgöra vikter)
 
-* Fitness function
-	- Överstämma till godtycklig melodi (countersubject)
-	- Understämma till godtycklig melodi
-	- Mellanspel som binder ihop slutet på en takt med början på en annan takt
-	- Sammansättning av olika delar som bygger upp en fuga
-	- Bestämma ackordföljder
-	- Subject
+Track_test (measure):
 
+Stämma:
+Tonerna funkar tillsammans med melodin (vettiga intervall mellan subject) (is_consonant)
+Mäter interval på taktslag
+Mäter interval på hela låten (Kollar så att noter har “bra” interval men även så att samma intervall inte upprepas genom hela)
+Om stämman i sig är en hyfsat vettig melodi
+Skalor
+Rimliga intervall inom stämman
+Lagom variation (entropi, ska vara groove)
+Mäta mängd exakt lika noter 
+Mäta passager som upprepas (repetition)
+Mäta om noter efter varandra skapar tillfälliga harmonic motions (t.ex. C-E-G eller D-F#-A)
+Ackordföljder i varje takt
+Kolla om duration är samma för större passager 
+Kolla att not-duration är mer grupperat.
+Mäta progression (tonic-subdominant-dominant)
+Mäta mängden ackord i ett track (för många blir jobbigt att lyssna på)
+Mäta hur många av not-durations som hamnar på sitt “rätta slag i låten. Ex. åttondelar på något åttondelsslag, fjärdedelar på ett fjärdedelsslag (inte på ett åttondelsslag) osv.
+Ackord som är i rätt tonart
 
+Melodi som binder samman:
 
+Binda ihop två redan existerande delar
+Första noten ska passa med sista i den innan
+Sista noten ska passa med första i den efter
+Vägen mellan ska vara snyggt modellerad om det behövs
+Ackordföljd/progression
 
-=============================
+Slut:
+Tillfredsställande avslutande progression. 
+Finns det en bra avslutande not? Grundtonen, troligen.
 
-Typ klart:
+Eg mutation:
+Kanske byta från antal halvsteg till antal steg i fifth-skalan?
+Note duration normalisation (Gaussian)
+Wildness variable
 
-Note Class
-   Egenskaper: ton, längd, startpunkt
-
-
-Create answer from subject 
-   Transpose subject to dominant
-
-
-Define scale
-   Dur, c = 0, d = 2
-
-
-Input ska hanteras
-    Array med noter som skapar ett tema
-
-
-
-===============================
-
-Helt klart:
+Track_functions:
+Shift: Canon . 

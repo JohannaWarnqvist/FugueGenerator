@@ -47,8 +47,14 @@ def generate_fugue(key,subject):
     #second_voice = second_voice + answer
     Track_Functions.add_tracks(second_voice,answer)
 
+    #EG generate stämma , voice, harmony , something 
+
     # Create development in minor in bar 5 and 6. 
-    # Create stretto in bar 9 and 10.
+    # Transposed -3 to minor + (stämma i för second voice tills vidare tom)
+
+    # Create canon in bar 9 and 10.
+    # subject i frist voice
+    # second voice is subject but shifted (half a bar for now) 
 
     #INSERT MORE CODE HERE
 
