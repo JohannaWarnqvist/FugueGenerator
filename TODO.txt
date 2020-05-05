@@ -6,6 +6,7 @@
     # subject i first voice
     # second voice is subject but shifted (half a bar for now)
 
+test
 
 Eg fitness functions:
 Överstämma /Understämma (Kan användas som countersubject och stämma)
