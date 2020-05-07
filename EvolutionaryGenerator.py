@@ -9,7 +9,8 @@ import fitness_functions as Fitness_Functions
 
 class EvolutionaryGenerator():
 
-    def __init__(self, key, nr_bars = 2, fitness_function = 'C', global_max = 2):
+    def __init__(self, key, nr_bars = 2, fitness_function = 'C', global_max = None, input_melody = None, 
+            from_bar = None, to_bar = None, from_key = None, to_key = None):
         "Initialize all the parameters"
         
         # When testing to regenerate same case:
@@ -18,9 +19,14 @@ class EvolutionaryGenerator():
 
         # == Parameters ==
         self.fitness_function = fitness_function
+        self.input_melody = input_melody
+        self.from_bar = from_bar
+        self.to_bar = to_bar
+        self.from_key = from_key
+        self.to_key = to_key
         
         self.population_size = 100
-        self.nr_generations = 1000;
+        self.nr_generations = 100;
         
         self.probability_rest = 0.05
         
@@ -43,8 +49,8 @@ class EvolutionaryGenerator():
         self.max_fitness_value = 0
         
         # Deciding here which note lengths that are allowed. Maybe should be done somewhere else?
-        #self.possible_lengths = [1, 4/3, 2, 8/3, 4, 16/3, 8, 32/3, 16, 32]
-        self.possible_lengths = [16, 8, 4, 2, 1]
+        self.possible_lengths = [32, 16, 32/3, 8, 16/3, 4, 8/3, 2, 4/3, 1]
+        #self.possible_lengths = [16, 8, 4, 2, 1]
 
     def test_population(self):
         "Returns a population consisting of a single individual which is the C-scale."
@@ -78,7 +84,7 @@ class EvolutionaryGenerator():
         for iGen in range(self.nr_generations):
             
             # == Calculate fitness and save best individual ==
-            fitness_values = self.calculate_fitness(self.population, self.fitness_function)
+            fitness_values = self.calculate_fitness(self.population)
             
             # Save a copy of the best individual
             best_individual_index = np.argmax(fitness_values)        
@@ -124,6 +130,20 @@ class EvolutionaryGenerator():
             
             # == Save generation ==
             self.population = tmp_population
+        
+        # == Calculate fitness and save best individual ==
+        fitness_values = self.calculate_fitness(self.population)
+        
+        # Save a copy of the best individual
+        best_individual_index = np.argmax(fitness_values)        
+        self.best_individual = copy.deepcopy(self.population[best_individual_index])
+        
+        # Print best individual and its fitness value if better than before
+        if fitness_values[best_individual_index] > self.max_fitness_value:
+            print(f"Generation: {iGen}")
+            print(f"Best individual: {self.best_individual}")
+            print(f"Fitness: {fitness_values[best_individual_index]}")
+            self.max_fitness_value = fitness_values[best_individual_index]
     
     def initialize_population(self, meter = (4,4), min_pitch = -12, max_pitch = 24):
         """Create the population consisting of the wanted number of
@@ -167,7 +187,7 @@ class EvolutionaryGenerator():
                 
             population.append(melody)
         
-        print(f"Initial population: {population}")
+        #print(f"Initial population: {population}")
         return population
 
     def get_random_note_pitch(self, scale_tones):
@@ -530,10 +550,17 @@ class EvolutionaryGenerator():
     def calculate_fitness(self, population):
         "Calls on the wanted fitness function using self and the population as arguments."
         
-        if fitness_function == 'C':
+        if self.fitness_function == 'C':
             fitness_values = Fitness_Functions.calculate_fitness_C(self, population)
-        elif fitness_function == 'pauses':
-            fitness_values = Fitness_Functions.calculate_fitness_pauses(self,population)
+            self.global_max = 2
+        elif self.fitness_function == 'pauses':
+            fitness_values = Fitness_Functions.calculate_fitness_pauses(self, population)
+        elif self.fitness_function == 'counter':
+            fitness_values = Fitness_Functions.calculate_fitness_counter(self, population, self.input_melody)
+        elif self.fitness_function == 'modulate':
+            fitness_values = Fitness_Functions.calculate_fitness_modulate(self, population, self.from_bar, self.to_bar, self.from_key, self.to_key)
+        elif self.fitness_function == 'harmony':
+            fitness_values = Fitness_Functions.calculate_fitness_harmony(self, population, self.input_melody)
 
         return fitness_values
    

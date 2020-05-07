@@ -174,9 +174,6 @@ def get_interval_from_halfnotes(nmb_of_halfnotes):
     return interval
 
 #--------------------------------------------------------------------
-# Transpose NEEDS FIX! 
-# TODO: Transpose doesn't work for transposing more than an octave
-# interval is for example " 7" = major seventh, "b4" = minor fourth
 # More info on Mingus web page under intervals - intervals from shorthand
 #--------------------------------------------------------------------
 
@@ -214,13 +211,22 @@ def transpose_from_halfnote(track,nmb_of_halfnotes,up = True):
 
 # A start to a function to use in bar 5 and 6. Does not yet actually do anything.
 # When done, it should be able to transpose a melody from C major to A minor
-"""def transpose_to_relative_minor(track,original_key,harmonic)
+"""def transpose_to_relative_minor(track, original_key, harmonic)
     new_key = intervals.minor_third(original_key)
     # Get the notes of the minor scale
-    new_scale = scales.get_notes(new_key.lower())
+    new_scale = scales.get_notes(new_key)
+    
     # If harmonic minor, use the major 7th
     if harmonic == True:
         new_scale[6] = notes.augment(new_scale[6])
+        
+    minor_track = transpose_from_halfnote(track, 3, False)
+    note_containers = minor_track.get_notes()
+    for note_con in note_containers:
+        for note in note_con:
+            #Check if note is in the new_scale
+            continue    
+    
     return track"""
 
 def transpose_to_relative_minor(track, original_key, harmonic):
@@ -283,10 +289,7 @@ def transpose(track, interval, up):
     # Return transposed track
     return transposed_track
 
-#NEEDS TO FIX TRANSPOSE OVER OCTAVE
-#Helper octave function maybe?
-def octave(track, nmb_of_octaves, up=True):
-    return track
+
       
 #--------------------------------------------------------------------
 #REVERSE DONE
@@ -450,6 +453,39 @@ def change_speed(track, factor, up=True):
                 
 
     return changed_track    
+
+
+def shift(track, pause_duration):
+    shifted_track = Track()
+    
+    bar = Bar()
+    bar.place_rest(pause_duration)
+    input_note_containers = track.get_notes()
+    
+    for note in input_note_containers:
+        placed = bar.place_notes(note[-1], note[1])
+        if not placed:
+            beat_left = 1.0 - bar.current_beat
+            beats_part_1 = beat_left
+            beats_part_2 = 1/note[1] - beats_part_1
+            
+            if beats_part_1 != 0:
+                duration_part_1 = 1/beats_part_1
+                bar.place_notes(note[-1], duration_part_1)
+
+            shifted_track.add_bar(copy.deepcopy(bar))
+            
+            bar = Bar()
+            
+            duration_part_2 = 1/beats_part_2
+            
+            bar.place_notes(note[-1], duration_part_2)
+
+    shifted_track.add_bar(copy.deepcopy(bar))
+
+    return shifted_track
+            
+    
 
 #----------------------------------
 # TODO

@@ -49,3 +49,26 @@ def calculate_fitness_pauses(self, population):
                         
             fitness_values[iPop] = fitness
         return fitness_values
+
+# TODO: Create the fitness function for the countersubject
+def calculate_fitness_counter(self, population, input_melody):
+    "Return a countersubject to the input_melody"
+    
+    # Until it is fixed, just return what fitness function C gives.
+    return calculate_fitness_C(self, population)
+    
+    
+# TODO: Create the fitness function for the countersubject
+def calculate_fitness_modulate(self, population, from_bar, to_bar, from_key, to_key):
+    "Return a melody that modulates from from_bar to to_bar"
+    
+    # Until it is fixed, just return what fitness function C gives.
+    return calculate_fitness_C(self, population)
+    
+    
+# TODO: Create the fitness function for a harmony to another melody
+def calculate_fitness_harmony(self, population, input_melody):
+    "Return a harmony to the input_melody"
+    
+    # Until it is fixed, just return what fitness function C gives.
+    return calculate_fitness_C(self, population)

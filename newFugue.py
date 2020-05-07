@@ -15,6 +15,7 @@ from Mingus_LilyPond_helper import to_LilyPond_file
 import track_functions as Track_Functions
 from mingus.midi import midi_file_out
 import copy
+from EvolutionaryGenerator import EvolutionaryGenerator
 
 #Important variables!
 fugue = Composition()
@@ -41,23 +42,104 @@ def generate_fugue(key,subject):
         second_voice.add_bar(copy.deepcopy(rest_1bar))
     
 
-    # Create second bar with answer in second voice. Countersubject comes later.
+    # Create second bar with answer in second voice.
     answer = Track_Functions.transpose_from_halfnote(subject , 7)
     
     #second_voice = second_voice + answer
     Track_Functions.add_tracks(second_voice,answer)
-
-    #EG generate stämma , voice, harmony , something 
-
-    # Create development in minor in bar 5 and 6. 
+    
+    # Generate countersubject
+    eg_counter = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'counter', input_melody = subject)
+    eg_counter.run_evolution()
+    counter_subject = copy.deepcopy(eg_counter.best_individual)
+    
+    Track_Functions.add_tracks(first_voice, counter_subject)
+    
+    # Bar 3 and 4:
+    #EG generate stämma , voice, harmony , something
+    # Save bar 2 for later modulation
+    bar_2 = first_voice[-1]
+    
+    
+    # Generate development in minor in bar 5 and 6. 
     # Transposed -3 to minor + (stämma i för second voice tills vidare tom)
+    minor_first_voice = Track_Functions.transpose_to_relative_minor(first_voice, key, False)
+    minor_second_voice = Track_Functions.transpose_to_relative_minor(second_voice, key, False)
+        
+    bar_5 = minor_first_voice[0]
+    
+    # Generate harmony in second voice in bar 5
+    minor_key = intervals.minor_third(key)
+    eg_harmony_minor = EvolutionaryGenerator(minor_key, nr_bars = 1, fitness_function = 'harmony', 
+            input_melody = Track().add_bar(copy.deepcopy(minor_first_voice[0])))
+
+    eg_harmony_minor.run_evolution()
+    
+    minor_second_voice[0] = eg_harmony_minor.best_individual[0]
+
+    # Generate bar 3 and 4 as a modulation between bar 2 and 5
+    eg_modulate_to_minor = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'modulate', 
+            from_bar = bar_2, to_bar = bar_5, from_key = 'C', to_key = 'Am')
+
+    eg_modulate_to_minor.run_evolution()
+    modulate_first_voice = copy.deepcopy(eg_modulate_to_minor.best_individual)
+
+    # Generate second voice as harmony to the first voice in bar 3 and 4
+    
+    eg_second_voice_modulate = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'harmony', 
+            input_melody = modulate_first_voice, from_key = 'C', to_key = 'Am')
+    
+    eg_second_voice_modulate.run_evolution()    
+    modulate_second_voice = copy.deepcopy(eg_second_voice_modulate.best_individual)
+
+
+    # Add bar 3-6 to the voice tracks
+    Track_Functions.add_tracks(first_voice, modulate_first_voice)
+    Track_Functions.add_tracks(second_voice, modulate_second_voice)
+    
+    Track_Functions.add_tracks(first_voice, minor_first_voice)
+    Track_Functions.add_tracks(second_voice, minor_second_voice)
+
+    bar_6 = first_voice[-1]
 
     # Create canon in bar 9 and 10.
-    # subject i frist voice
+    # subject i first voice
     # second voice is subject but shifted (half a bar for now) 
 
-    #INSERT MORE CODE HERE
+    canon_first_voice = Track()
+    canon_first_voice.add_bar(copy.deepcopy(subject[0]))
+    
+    bar_9 = canon_first_voice[0]
 
+    canon_second_voice = Track_Functions.shift(subject, 2)
+    
+
+    # Create modulation from minor to major in 7 and 8
+    
+    eg_modulate_to_major = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'modulate', 
+            from_bar = bar_6, to_bar = bar_9, from_key = 'Am', to_key = 'C')
+
+    eg_modulate_to_major.run_evolution()
+    modulate_back_first_voice = copy.deepcopy(eg_modulate_to_major.best_individual)
+
+    # Generate second voice as harmony to the first voice in bar 3 and 4
+    
+    eg_second_voice_modulate_back = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'harmony', 
+            input_melody = modulate_first_voice, from_key = 'Am', to_key = 'C')
+    
+    eg_second_voice_modulate_back.run_evolution()    
+    modulate_back_second_voice = copy.deepcopy(eg_second_voice_modulate.best_individual)
+    
+    
+    # Add bar 7-10 to the voice tracks
+    Track_Functions.add_tracks(first_voice, modulate_back_first_voice)
+    Track_Functions.add_tracks(second_voice, modulate_back_second_voice)
+    
+    Track_Functions.add_tracks(first_voice, canon_first_voice)
+    Track_Functions.add_tracks(second_voice, canon_second_voice)
+
+    
+    breakpoint()
     #Add voices together to create a final composition
     fugue.add_track(first_voice)
     fugue.add_track(second_voice)
