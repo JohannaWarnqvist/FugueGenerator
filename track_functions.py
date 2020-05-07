@@ -454,7 +454,11 @@ def change_speed(track, factor, up=True):
 
     return changed_track    
 
-
+#--------------------------------------------------------------------
+# SHIF DONE
+# Shifts a track for the pause duration and returns a copied and shifted track
+# Used for canon
+#--------------------------------------------------------------------
 def shift(track, pause_duration):
     shifted_track = Track()
     

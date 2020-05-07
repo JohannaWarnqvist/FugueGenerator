@@ -55,11 +55,9 @@ def generate_fugue(key,subject):
     
     Track_Functions.add_tracks(first_voice, counter_subject)
     
-    # Bar 3 and 4:
-    #EG generate stämma , voice, harmony , something
+
     # Save bar 2 for later modulation
-    bar_2 = first_voice[-1]
-    
+    bar_2 = first_voice[-1]    
     
     # Generate development in minor in bar 5 and 6. 
     # Transposed -3 to minor + (stämma i för second voice tills vidare tom)
