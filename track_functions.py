@@ -132,9 +132,11 @@ def input_list(list_of_note_tuples):
 def input_midi(midi_file):
     track = Track()
     midi.MIDI_to_Composition(midi_file)
+    print(midi.MIDI_to_Composition(midi_file))
     return track
 
-#input_midi('final_fugue.mid')
+#with open('final_fugue.mid', 'r') as f:
+#    input_midi(f)
 
 #--------------------------------------------------------------------
 #INIT PRESETS
@@ -218,23 +220,6 @@ def transpose_from_halfnote(track,nmb_of_halfnotes,up = True):
 
 # A start to a function to use in bar 5 and 6. Does not yet actually do anything.
 # When done, it should be able to transpose a melody from C major to A minor
-"""def transpose_to_relative_minor(track, original_key, harmonic)
-    new_key = intervals.minor_third(original_key)
-    # Get the notes of the minor scale
-    new_scale = scales.get_notes(new_key)
-    
-    # If harmonic minor, use the major 7th
-    if harmonic == True:
-        new_scale[6] = notes.augment(new_scale[6])
-        
-    minor_track = transpose_from_halfnote(track, 3, False)
-    note_containers = minor_track.get_notes()
-    for note_con in note_containers:
-        for note in note_con:
-            #Check if note is in the new_scale
-            continue    
-    
-    return track"""
 
 def transpose_to_relative_minor(track, original_key, harmonic):
     transposed_track = copy.deepcopy(track)
@@ -271,11 +256,6 @@ def transpose_to_relative_minor(track, original_key, harmonic):
     return transposed_track
 
 #TEST for Transpose to relative minor 
-""""
-test_track = init_preset_track(2)
-print(test_track)
-print(transpose_to_relative_minor(test_track, "Cb", True))
-"""
 
 def transpose(track, interval, up):
     "Return a copy of the track, transposed the given interval up if up = True, otherwise down."

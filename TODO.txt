@@ -1,18 +1,5 @@
 ﻿TODO:
 ----------------------------------------------
-NewFugue:
-1. Create development in minor in bar 5 and 6. 
-- Transposed -3 to minor + (stämma where second voice is empty during exposition 
- (this part can be left empty until EG is finished)
- 
-2. Create canon in bar 9 and 10.
-- subject in first voice
-- second voice is subject but shifted (half a bar for now)
-
-3. (Johanna - in progress) Fining skeleton code for EG parts(insert EG function calls that generates "bad stuff" until fitness functions 
-are complete. 
-
-----------------------------------------------
 fitness-functions:
 1. Överstämma /Understämma (Kan användas som countersubject och stämma)
 
@@ -42,10 +29,10 @@ Variation/Repetition:
 Mäta mängd exakt lika noter 
 Mäta passager som upprepas (repetition)
 
-Notlängder / Clutter:
+Notlängder / Clutter: (Emilie)
 Kolla om duration är samma för större passager 
 Kolla att not-duration är mer grupperat.
-Mäta mängden ackord i ett track (för många blir jobbigt att lyssna på)
+Mäta mängden ackord skapas av båda tracks samtidigt track (för många blir jobbigt att lyssna på)(fixa merge så att den dubblar istället för att klippa)
 
 Progression:
 Mäta om noter efter varandra skapar tillfälliga harmonic motions (t.ex. C-E-G eller D-F#-A)
@@ -73,3 +60,18 @@ EG mutation:
 ---------------------------------------------------
 Track_functions:
 1. Shift/Canon. Returns track that is shifted x duration (used for NewFugue)
+
+
+-----------------------------------------------------------------------------------------------
+DONE LIST
+NewFugue: 
+1. Create development in minor in bar 5 and 6. 
+- Transposed -3 to minor + (stämma where second voice is empty during exposition 
+ (this part can be left empty until EG is finished)
+ 
+2. Create canon in bar 9 and 10.
+- subject in first voice
+- second voice is subject but shifted (half a bar for now)
+
+3. Fining skeleton code for EG parts(insert EG function calls that generates "bad stuff" until fitness functions 
+are complete. 
