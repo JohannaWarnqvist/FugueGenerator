@@ -129,6 +129,13 @@ def input_list(list_of_note_tuples):
 
     return track
 
+def input_midi(midi_file):
+    track = Track()
+    midi.MIDI_to_Composition(midi_file)
+    return track
+
+#input_midi('final_fugue.mid')
+
 #--------------------------------------------------------------------
 #INIT PRESETS
 #TODO: Write better and more thought out presets for testing 
