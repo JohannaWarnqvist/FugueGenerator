@@ -135,8 +135,7 @@ def generate_fugue(key,subject):
     
     Track_Functions.add_tracks(first_voice, canon_first_voice)
     Track_Functions.add_tracks(second_voice, canon_second_voice)
-   
-    breakpoint()
+    
     #Add voices together to create a final composition
     fugue.add_track(first_voice)
     fugue.add_track(second_voice)
