@@ -129,6 +129,13 @@ def input_list(list_of_note_tuples):
 
     return track
 
+def input_midi(midi_file):
+    track = Track()
+    midi.MIDI_to_Composition(midi_file)
+    return track
+
+#input_midi('final_fugue.mid')
+
 #--------------------------------------------------------------------
 #INIT PRESETS
 #TODO: Write better and more thought out presets for testing 
@@ -454,7 +461,11 @@ def change_speed(track, factor, up=True):
 
     return changed_track    
 
-
+#--------------------------------------------------------------------
+# SHIF DONE
+# Shifts a track for the pause duration and returns a copied and shifted track
+# Used for canon
+#--------------------------------------------------------------------
 def shift(track, pause_duration):
     shifted_track = Track()
     
