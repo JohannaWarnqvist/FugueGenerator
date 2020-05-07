@@ -138,13 +138,9 @@ def generate_fugue(key,subject):
     Track_Functions.add_tracks(first_voice, canon_first_voice)
     Track_Functions.add_tracks(second_voice, canon_second_voice)
 
-    
-    breakpoint()
     #Add voices together to create a final composition
     fugue.add_track(first_voice)
     fugue.add_track(second_voice)
-
-    
 
     #Generate lilypond file for fugue named final_fugue
     finished_fugue = LilyPond.from_Composition(fugue)
