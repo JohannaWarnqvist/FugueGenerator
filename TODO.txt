@@ -26,7 +26,6 @@ Skalor:
 Hur många noter är i skalan
 
 Variation/Repetition: (Emilie)
-Mäta mängd exakt lika noter 
 Mäta passager som upprepas (repetition)
 
 Progression:
@@ -77,5 +76,7 @@ repeating_note_length: Kolla om duration är samma för större passager
 average_note_length_clusters: Kolla att not-duration är mer grupperat.
 average_numb_of_chords: Mäta mängden ackord skapas av båda tracks samtidigt track (för många blir jobbigt att lyssna på)
 
+Variation/Repetition: 
+repeating_note_pitch: Kollar om note pitch är densamma
 Track_functions:
 Shift/Canon. Returns track that is shifted x duration (used for NewFugue)
