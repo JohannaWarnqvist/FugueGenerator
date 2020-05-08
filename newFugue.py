@@ -43,7 +43,7 @@ def generate_fugue(key,subject):
     
 
     # Create second bar with answer in second voice.
-    answer = Track_Functions.transpose_from_halfnote(subject , 7)
+    answer = Track_Functions.create_answer(subject, key)
     
     #second_voice = second_voice + answer
     Track_Functions.add_tracks(second_voice,answer)
