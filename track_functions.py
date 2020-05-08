@@ -476,8 +476,26 @@ def shift(track, pause_duration):
     shifted_track.add_bar(copy.deepcopy(bar))
 
     return shifted_track
-            
-    
+
+
+# -----------------------
+# CREATE ANSWER
+# This function handles leaps from the root to the fifth, if there are any, in the subject before transposing
+# to the dominant. Such leaps are ok in the subject but should apparantly be avoided in the answer. (This is called tonal answer). 
+# -----------------------
+def create_answer(track, key):
+    # First look for any perfect fifth leaps from the root note in the melody
+    # If found, diminsh the fifth to a fourth before transposing
+    for i in range(len(track[0])-1):
+        note1 = track[0][i][2][0].name      # This monstrosity is the note name
+        if note1 == key:                    
+            note2 = track[0][i+1][2][0].name
+            interval = intervals.determine(note1,note2)
+            if interval == 'perfect fifth':
+                track[0][i+1][2][0].transpose('2',False)
+
+    answer = transpose_from_halfnote(track,7,up=True)    
+    return answer
 
 #----------------------------------
 # TODO
