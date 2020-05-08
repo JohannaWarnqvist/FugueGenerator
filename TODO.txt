@@ -25,14 +25,9 @@ Rimliga intervall inom stämman (inte för många stora intervall hopp)
 Skalor:
 Hur många noter är i skalan
 
-Variation/Repetition:
+Variation/Repetition: (Emilie)
 Mäta mängd exakt lika noter 
 Mäta passager som upprepas (repetition)
-
-Notlängder / Clutter: (Emilie)
-Kolla om duration är samma för större passager 
-Kolla att not-duration är mer grupperat.
-Mäta mängden ackord skapas av båda tracks samtidigt track (för många blir jobbigt att lyssna på)(fixa merge så att den dubblar istället för att klippa)
 
 Progression:
 Mäta om noter efter varandra skapar tillfälliga harmonic motions (t.ex. C-E-G eller D-F#-A)
@@ -59,8 +54,8 @@ EG mutation:
 3. Wildness variable
 ---------------------------------------------------
 Track_functions:
-1. Shift/Canon. Returns track that is shifted x duration (used for NewFugue)
-
+(fixa merge så att den dubblar istället för att klippa)
+Generate longer test tracks?
 
 -----------------------------------------------------------------------------------------------
 DONE LIST
@@ -75,3 +70,12 @@ NewFugue:
 
 3. Fining skeleton code for EG parts(insert EG function calls that generates "bad stuff" until fitness functions 
 are complete. 
+
+Track_test:
+Notlängder / Clutter:
+repeating_note_length: Kolla om duration är samma för större passager 
+average_note_length_clusters: Kolla att not-duration är mer grupperat.
+average_numb_of_chords: Mäta mängden ackord skapas av båda tracks samtidigt track (för många blir jobbigt att lyssna på)
+
+Track_functions:
+Shift/Canon. Returns track that is shifted x duration (used for NewFugue)

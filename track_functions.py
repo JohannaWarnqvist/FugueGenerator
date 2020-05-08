@@ -66,7 +66,7 @@ def merge_tracks(track1,track2):
 
                 # if the notes have different length always use the shortest one
                 if note1[1] > note2[1]:
-                    merged_track.add_notes(nc,note1[2])
+                    merged_track.add_notes(nc,note2[1])
                 else:
                     merged_track.add_notes(nc,note1[1])
                 
@@ -81,6 +81,7 @@ def merge_tracks(track1,track2):
                 #If length of note1 is bigger than time until next note in track2 then cut lenght to fit
                 if note1[1] > time_to_next:
                     merged_track.add_notes(nc,time_to_next)
+                    
                 #Otherwise add note as normal
                 else: 
                     merged_track.add_notes(nc,note1[1])
@@ -102,7 +103,7 @@ def merge_tracks(track1,track2):
 
     #Add remaining notes if any from track2
     for note2 in track2_notes:
-        merged_tracks.add_notes(note2[-1],note2[0])
+        merged_track.add_notes(note2[-1],note2[1])
 
     return merged_track
 
