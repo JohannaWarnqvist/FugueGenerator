@@ -17,7 +17,7 @@ import random
 import track_functions as Track_Functions
 
 """FUNCTION INDEX                                           (to be able to find functions easier)
-repeating_note_lenght(track)                                Calculates a fraction between the nmb of notes and the most occuring note length and returns it
+repeating_note_length(track)                                Calculates a fraction between the nmb of notes and the most occuring note length and returns it
 average_numb_of_chords(track1,track2)                       Returns an average numb of chords/bar created by two tracks playing simultaneously
 average_note_length_cluster(track)                          returns the average size of same length note clusters
 repeating_note_pitch(track, (optional bool exact))          Calculates a fraction between the nmb of notes and the most occuring note pitch and returns it
@@ -25,11 +25,11 @@ repeating_passages(track)                                   IN PROGRESS
 """
 
 #--------------------------------------------------------------------
-# repeating_note_lenght:
+# repeating_note_length:
 # Calculates a fraction between the nmb of notes and the most occuring note length and returns it
 # Ex. If 60% of the notes are quarter notes the function will reeturn 0.6
 #--------------------------------------------------------------------
-def repeating_note_lenght(track):
+def repeating_note_length(track):
     note_generetor = copy.deepcopy(track).get_notes()
     #Dictionary that matches note length to nmb of occurences of that note
     note_lengths = {}
@@ -148,6 +148,30 @@ def repeating_note_pitch(track, exact = False):
 #--------------------------------------------------------------------   
 def repeating_passages(track):
     note_generetor = copy.deepcopy(track).get_notes()
+
+
+#--------------------------------------------------------------------
+# count_notes_on_beat:
+# Calculates how many notes that are on a beat of its own duration beats, or if it is in the middle of two such beats.
+# Returns a list of the number of notes placed on correct beats, and the number of notes in the middle of beats.
+#--------------------------------------------------------------------   
+def count_notes_on_beat(track):
+    placed_on_beat = 0
+    placed_on_half_beat = 0
+
+    note_containers = track.get_notes()
+    for note in note_containers:
+        # Get the note from the container
+        print(note)
+        note_duration = note[1]
+        note_beat = note[0]
+        if (note_beat % (1/note_duration)) == 0:
+            placed_on_beat += 1
+        elif (note_beat % (1/(2*note_duration))) == 0:
+            placed_on_half_beat += 1
+    
+    return [placed_on_beat, placed_on_half_beat]
+
 
 """ Can be used to test functions
 test_track = Track_Functions.init_random_track("C",True)
