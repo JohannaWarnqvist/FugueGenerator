@@ -153,15 +153,19 @@ def repeating_passages(track, with_duration = False):
 
 #--------------------------------------------------------------------
 # count_notes_on_beat:
-# Calculates how many notes that are on a beat of its own duration beats, or if it is in the middle of two such beats.
-# Returns a list of the number of notes placed on correct beats, and the number of notes in the middle of beats.
+# Calculates how many notes that are on a beat of its own duration beats, or 
+# if it is in the middle of two such beats.
+# Returns a list of the number of notes placed on correct beats, and the number 
+# of notes in the middle of beats, normalized over total number of notes.
 #--------------------------------------------------------------------   
 def count_notes_on_beat(track):
     placed_on_beat = 0
     placed_on_half_beat = 0
+    total_nr_of_notes = 0
 
     note_containers = track.get_notes()
     for note in note_containers:
+        total_nr_of_notes += 1
         # Get the note from the container
         print(note)
         note_duration = note[1]
@@ -171,7 +175,25 @@ def count_notes_on_beat(track):
         elif (note_beat % (1/(2*note_duration))) == 0:
             placed_on_half_beat += 1
     
-    return [placed_on_beat, placed_on_half_beat]
+    return [placed_on_beat/total_nr_of_notes, placed_on_half_beat/total_nr_of_notes]
+
+#--------------------------------------------------------------------
+# count_notes_in_scale:
+# Counts the number of notes in the track that is in the correct scale.
+# Returns the number of notes in scale normalized over total number of notes.
+#--------------------------------------------------------------------   
+def count_notes_in_scale(track, key):
+    total_nr_of_notes = 0
+    notes_in_scale = 0
+    scale_notes = keys.get_notes(key)
+    notes = track.get_notes()
+    for note_container in notes:
+        note = note_container[-1][0]
+        total_nr_of_notes += 1
+        if note.name in scale_notes:
+            notes_in_scale += 1
+    
+    return notes_in_scale/total_nr_of_notes
 
 
 """ Can be used to test functions
