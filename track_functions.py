@@ -506,9 +506,8 @@ def create_answer(track, key):
 # Useful for testing harmonies later on
 # -------------------------------------------------------
 def pitch_at_given_beat(track, beat):
-    """Returns the melody pitch at a given beat. Accepts beat as an integer. Assumes beats start on 0.
-    Example: Beat 3 = bar 0, beat 3. Beat 5 = bar 1, beat 1.
-    Assumes 4/4 time, won't work in other time signatures. """
+    """Returns the melody pitch at a given beat. Accepts beat as an int. Assumes beats start on 0. Assumes 4/4 time.
+    Example: Beat 3 = bar 0, beat 3. Beat 5 = bar 1, beat 1."""
 
     # A study in python divison operators, to locate the given beat in the track.
     bar_no = beat // 4
@@ -517,14 +516,14 @@ def pitch_at_given_beat(track, beat):
     # The bar that holds the given beat
     bar = track[bar_no]
 
-    # Search for the given beat inside each pair of consecutive notes in the bar. This finds the pitch
-    # as long as the given beat is 'inside' the bar (= there is at least one note after the beat)
-    for i in range(len(bar)-1):
-        if beat_in_bar >= bar[i][0] and beat_in_bar < bar[i+1][0]:
-            return bar[i][2]
+    # Create a list of the timestamps in the bar
+    timestamps = [note[0] for note in bar]
+
+    # Find the index of the timestamp equal to or smaller than the given beat
+    index = timestamps.index(max(i for i in timestamps if i <= beat_in_bar))
     
-    # If the above for loop didn't find anything, return the last beat. 
-    return bar[-1][2]
+    # Return the pitch/pitches
+    return bar[index][2]
 
 
 
