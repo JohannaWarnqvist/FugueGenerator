@@ -22,7 +22,7 @@ Mäter interval på taktslag
 Mäter interval på hela låten (Kollar så att noter har “bra” interval men även så att samma intervall inte upprepas genom hela)
 Rimliga intervall inom stämman (inte för många stora intervall hopp)
 
-Skalor:
+Skalor: (Johanna)
 Hur många noter är i skalan
 
 Variation/Repetition: (Emilie)
@@ -34,7 +34,6 @@ Ackordföljder i varje takt
 Mäta progression (tonic-subdominant-dominant)
 
 Ackord + taktslag:
-Mäta hur många av not-durations som hamnar på sitt “rätta slag i låten. Ex. åttondelar på något åttondelsslag, fjärdedelar på ett fjärdedelsslag (inte på ett åttondelsslag) osv.
 Ackord som är i rätt tonart
 
 Test för fitness 2 (Melodi som binder samman):
@@ -80,3 +79,5 @@ Variation/Repetition:
 repeating_note_pitch: Kollar om note pitch är densamma
 Track_functions:
 Shift/Canon. Returns track that is shifted x duration (used for NewFugue)
+
+Mäta hur många av not-durations som hamnar på sitt “rätta" slag i låten. Ex. åttondelar på något åttondelsslag, fjärdedelar på ett fjärdedelsslag (inte på ett åttondelsslag) osv.
