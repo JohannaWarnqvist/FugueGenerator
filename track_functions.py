@@ -486,15 +486,17 @@ def shift(track, pause_duration):
 def create_answer(track, key):
     # First look for any perfect fifth leaps from the root note in the melody
     # If found, diminsh the fifth to a fourth before transposing
-    for i in range(len(track[0])-1):
-        note1 = track[0][i][2][0].name      # This monstrosity is the note name
+    
+    track_copy = copy.deepcopy(track)
+    for i in range(len(track_copy[0])-1):
+        note1 = track_copy[0][i][2][0].name      # This monstrosity is the note name
         if note1 == key:                    
-            note2 = track[0][i+1][2][0].name
+            note2 = track_copy[0][i+1][2][0].name
             interval = intervals.determine(note1,note2)
             if interval == 'perfect fifth':
-                track[0][i+1][2][0].transpose('2',False)
+                track_copy[0][i+1][2][0].transpose('2',False)
 
-    answer = transpose_from_halfnote(track,7,up=True)    
+    answer = transpose_from_halfnote(track_copy,7,up=True)    
     return answer
 
 #----------------------------------
