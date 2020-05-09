@@ -144,10 +144,11 @@ def repeating_note_pitch(track, exact = False):
 #--------------------------------------------------------------------
 # repeating_passages:
 # Calculates average length of repeating passage, 
-# Calculate numb of repetitions of passages larger than 3
+# Calculate average numb of repetitions of passages larger than 3 notes
 #--------------------------------------------------------------------   
-def repeating_passages(track):
+def repeating_passages(track, with_duration = False):
     note_generetor = copy.deepcopy(track).get_notes()
+   
 
 """ Can be used to test functions
 test_track = Track_Functions.init_random_track("C",True)
