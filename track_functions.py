@@ -478,11 +478,11 @@ def shift(track, pause_duration):
     return shifted_track
 
 
-# -----------------------
+# ---------------------------------------------
 # CREATE ANSWER
 # This function handles leaps from the root to the fifth, if there are any, in the subject before transposing
 # to the dominant. Such leaps are ok in the subject but should apparantly be avoided in the answer. (This is called tonal answer). 
-# -----------------------
+# ---------------------------------------------
 def create_answer(track, key):
     # First look for any perfect fifth leaps from the root note in the melody
     # If found, diminsh the fifth to a fourth before transposing
@@ -498,6 +498,35 @@ def create_answer(track, key):
 
     answer = transpose_from_halfnote(track_copy,7,up=True)    
     return answer
+
+
+# -------------------------------------------------------
+# PITCH_AT_GIVEN_BEAT
+# Returns a note container with the pitch of the note at the beat, or if there is no note exactly on the beat, the one before.
+# Useful for testing harmonies later on
+# -------------------------------------------------------
+def pitch_at_given_beat(track, beat):
+    """Returns the melody pitch at a given beat. Accepts beat as an integer. Assumes beats start on 0.
+    Example: Beat 3 = bar 0, beat 3. Beat 5 = bar 1, beat 1.
+    Assumes 4/4 time, won't work in other time signatures. """
+
+    # A study in python divison operators, to locate the given beat in the track.
+    bar_no = beat // 4
+    beat_in_bar = (beat % 4) / 4
+
+    # The bar that holds the given beat
+    bar = track[bar_no]
+
+    # Search for the given beat inside each pair of consecutive notes in the bar. This finds the pitch
+    # as long as the given beat is 'inside' the bar (= there is at least one note after the beat)
+    for i in range(len(bar)-1):
+        if beat_in_bar >= bar[i][0] and beat_in_bar < bar[i+1][0]:
+            return bar[i][2]
+    
+    # If the above for loop didn't find anything, return the last beat. 
+    return bar[-1][2]
+
+
 
 #----------------------------------
 # TODO
