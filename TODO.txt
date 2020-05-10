@@ -17,12 +17,10 @@ Track_test (measure):
 Generella testfunktioner för alla fitnessfunktioner:
 
 Intervall tester:
-Tonerna funkar tillsammans med melodin (vettiga intervall mellan subject, hållas inom "interval of tenth") (is_consonant)
-Mäter interval på taktslag
-Mäter interval på hela låten (Kollar så att noter har “bra” interval men även så att samma intervall inte upprepas genom hela)
-Rimliga intervall inom stämman (inte för många stora intervall hopp)
-Ingen tritone i en tre-tons-passage (F-A-B är inte bra för F och B har en tritone mellan sig). 
-Inte heller sjuor är bra i tre-tons-passage.
+Tonerna funkar tillsammans med melodin (vettiga intervall mellan subject, hållas inom "interval of tenth"): Finns funktioner för detta, t.ex. is_consonant (all vanliga konsonanta intervall), is_imperfect_consonant (terser och sexter), mm.
+Mäter interval på hela låten (Kollar så att noter har “bra” interval men även så att samma intervall inte upprepas genom hela). Finns bra riktlinjer för kontrapunkt-melodiskrivande
+Rimliga intervall inom stämman (inte för många stora intervall hopp). Det finns bra riktlinjer för vad som anses vara bra enl kontrapunkt, t.ex. att följa ett intervallhopp uppåt med ett nedåt. 
+
 
 Contrapuntal motion: (Johanna)
 Kolla hur stor andel som är parallell (ska helst undvikas), similar (okej), contrary (jättebra) och oblique (okej) motion.
@@ -83,6 +81,11 @@ Track_functions:
 Shift/Canon. Returns track that is shifted x duration (used for NewFugue)
 
 Mäta hur många av not-durations som hamnar på sitt “rätta" slag i låten. Ex. åttondelar på något åttondelsslag, fjärdedelar på ett fjärdedelsslag (inte på ett åttondelsslag) osv.
+
+Intervalltester:
+Mäter interval på taktslag. 
+Ingen tritone i en tre-tons-passage (F-A-B är inte bra för F och B har en tritone mellan sig). 
+Inte heller sjuor är bra i tre-tons-passage.
 
 Skalor:
 Hur många noter är i skalan
