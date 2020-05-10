@@ -22,6 +22,9 @@ average_numb_of_chords(track1,track2)                       Returns an average n
 average_note_length_cluster(track)                          returns the average size of same length note clusters
 repeating_note_pitch(track, (optional bool exact))          Calculates a fraction between the nmb of notes and the most occuring note pitch and returns it
 repeating_passages(track)                                   IN PROGRESS
+count_notes_on_beat(track)                                  Calculates how many notes that are on a beat of its own duration beats, or if it is in the middle of two such beats.
+count_notes_in_scale(track)                                 Counts the number of notes in the track that is in the correct scale.
+count_tritone_or_seventh_in_two_skips(track)                Returns the number of tritones or sevenths in two skips in a one-voice track.
 """
 
 #--------------------------------------------------------------------
@@ -194,6 +197,30 @@ def count_notes_in_scale(track, key):
             notes_in_scale += 1
     
     return notes_in_scale/total_nr_of_notes
+
+# ------------------------------------------
+# count_tritone_or_seventh_in_two_skips(track): 
+# Please feel free to rename !!
+# Returns the number of tritones or sevenths in two skips in a one-voice track.
+# Limitation: if input has notecontainers with more than one pitch, it counts the first note in the container.
+# -------------------------------------------
+def count_tritone_or_seventh_in_two_skips(track):
+    "Returns the number of tritones or sevenths in two skips in a one-voice track."
+
+    # All possible names of the 6, 10 and 11 halftone intervals
+    unwanted_intervals = ['augmented fourth','minor fifth','major seventh','minor seventh']
+    
+    # List of all notes in the track
+    notes = [track[i][j][2][0] for i in range(len(track.bars)) for j in range(len(track[i]))]
+    
+    # Count number of 'ugly' intervals 
+    nmb = 0
+    for i in range(len(notes)-2):
+        note_pair = NoteContainer([notes[i],notes[i+2]])
+        interval = note_pair.determine()    
+        if interval[0] in unwanted_intervals: # interval[0] because interval is a list, apparantly
+            nmb += 1
+    return nmb
 
 
 """ Can be used to test functions
