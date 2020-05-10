@@ -225,17 +225,19 @@ def count_tritone_or_seventh_in_two_skips(track):
 
 # ---------------------------------------------
 # interval_at_beat: 
-# returns the interval between two tracks on the given beat.
-# If there's a pause in any of the tracks, it returns None
-# (It might be an idea to move pitch_at_given_beat inside this function.)
+# Returns the interval between two tracks on the given beat
+# Returns a string by default, returns number of halftones if Halftones=True, returns None if there is a pause in any voice
 # ---------------------------------------------
-def interval_at_beat(track1,track2,beat):
-    "Returns the interval between two tracks on a given beat."
+def interval_at_beat(track1,track2,beat,int_output=False):
     pitch1 = Track_Functions.pitch_at_given_beat(track1,beat)
     pitch2 = Track_Functions.pitch_at_given_beat(track2,beat)
     if isinstance(pitch1,NoteContainer) and isinstance(pitch2,NoteContainer):
-        note_pair = NoteContainer([pitch1[0],pitch2[0]])
-        return note_pair.determine()[0]
+        if int_output == True:
+            interval_halftones = Note(pitch1[0]).measure(Note(pitch2[0]))
+            return interval_halftones
+        else:
+            note_pair = NoteContainer([pitch1[0],pitch2[0]])
+            return note_pair.determine()[0]
 
 """ Can be used to test functions
 test_track = Track_Functions.init_random_track("C",True)
