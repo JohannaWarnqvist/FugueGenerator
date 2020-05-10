@@ -25,6 +25,7 @@ repeating_passages(track)                                   IN PROGRESS
 count_notes_on_beat(track)                                  Calculates how many notes that are on a beat of its own duration beats, or if it is in the middle of two such beats.
 count_notes_in_scale(track)                                 Counts the number of notes in the track that is in the correct scale.
 count_tritone_or_seventh_in_two_skips(track)                Returns the number of tritones or sevenths in two skips in a one-voice track.
+interval_at_beat(track1,track2,beat)                        Returns the interval between two tracks on a given beat
 """
 
 #--------------------------------------------------------------------
@@ -222,6 +223,19 @@ def count_tritone_or_seventh_in_two_skips(track):
             nmb += 1
     return nmb
 
+# ---------------------------------------------
+# interval_at_beat: 
+# returns the interval between two tracks on the given beat.
+# If there's a pause in any of the tracks, it returns None
+# (It might be an idea to move pitch_at_given_beat inside this function.)
+# ---------------------------------------------
+def interval_at_beat(track1,track2,beat):
+    "Returns the interval between two tracks on a given beat."
+    pitch1 = Track_Functions.pitch_at_given_beat(track1,beat)
+    pitch2 = Track_Functions.pitch_at_given_beat(track2,beat)
+    if isinstance(pitch1,NoteContainer) and isinstance(pitch2,NoteContainer):
+        note_pair = NoteContainer([pitch1[0],pitch2[0]])
+        return note_pair.determine()[0]
 
 """ Can be used to test functions
 test_track = Track_Functions.init_random_track("C",True)
