@@ -146,10 +146,11 @@ def input_midi(midi_file):
 def init_preset_track(num):
     track = Track()
     if num==1: #C-chord
-        track + "Gb"
+        track.add_notes(None)
+        track.add_notes(None)
         nc = NoteContainer(["C","E"])
         track.add_notes(nc)
-        track + "E"
+        track + "E-5"
         track + "A-3"
         track.add_notes(None)
         track + "C-5"
@@ -159,16 +160,17 @@ def init_preset_track(num):
         track + "G-5"
         track + "C-6"
     if num==2:
-        track + "Gb"
-        track + "B-3"
+        track + "C"
         track + "D"
         track + "E"
-        track + "Gb"
-        track + "F"
-        track + "A#"
-        track + "B"
-        track + "C-5"
-        track + "D-5"
+        track + "A-2"
+        track + "C"
+        track + "D"
+        track + "E"
+        track + "F-5"
+        track + "D"
+        track + "E"
+        track + "E-5"
     if num ==3:
         test_scale = scales.Major("C")
         for i in range(7):
@@ -281,7 +283,7 @@ def transpose(track, interval, up):
       
 #--------------------------------------------------------------------
 #REVERSE DONE
-#Returns an copied and inverted track of input track
+#Returns an copied and reversed track of input track
 #--------------------------------------------------------------------
 def reverse(track):
     # Copy value of reference to aviod problems with overwriting    

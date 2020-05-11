@@ -21,7 +21,7 @@ repeating_note_length(track)                                Calculates a fractio
 average_numb_of_chords(track1,track2)                       Returns an average numb of chords/bar created by two tracks playing simultaneously
 average_note_length_cluster(track)                          returns the average size of same length note clusters
 repeating_note_pitch(track, (optional bool exact))          Calculates a fraction between the nmb of notes and the most occuring note pitch and returns it
-repeating_passages(track)                                   IN PROGRESS
+repeating_passages(track, (optional bool with_duration))    returns (average_nm_of_rep,average_len_of_repetition,(percentage_of_repetition- kinda works but not perfect))
 count_notes_on_beat(track)                                  Calculates how many notes that are on a beat of its own duration beats, or if it is in the middle of two such beats.
 count_notes_in_scale(track)                                 Counts the number of notes in the track that is in the correct scale.
 count_tritone_or_seventh_in_two_skips(track)                Returns the number of tritones or sevenths in two skips in a one-voice track.
@@ -146,15 +146,87 @@ def repeating_note_pitch(track, exact = False):
     return biggest_fraction
 
 #--------------------------------------------------------------------
-# repeating_passages:
+# repeating_passages: (Values may not be exact but are good enough to use in the fitness function)
 # Calculates average length of repeating passage, 
-# Calculate average numb of repetitions of passages larger than 3 notes
+# Calculate average numb of repetitions of passages larger than 1 note
+# Calculate the precentage of the track that is build up of repetition 
+# Note: Repetitions are measured within a bar, witdh_duration determines if repetition has to have same relative note duration or not.
 #--------------------------------------------------------------------   
 def repeating_passages(track, with_duration = False):
     note_generetor = copy.deepcopy(track).get_notes()
-   
+    passage_repetitions = {}    #directory of occurences of different passages (nmb of repetitions)
+    passage_lengths = {}        #directory of passage lenths, Cause you can't store two different values to same key in one directory
+    current_passage = []        #List of either just (intervals as ints) or (intervals,relative difference between note durations)
+    previous_note = None        
+    previous_note_length = 0    #Only useful when considering note durations
+    nmb_of_notes = 0.0          #Used to calculate percentage
+    
+    
+    for note in note_generetor:
+        nmb_of_notes += 1.0
+        #If pause go to next note
+        if note[-1] is None:
+            continue
+        
+        #If new bar or first Note, change previous note to be the current note
+        elif(note[0] == 0.0) or (previous_note is None):
+            previous_note = note[-1][0]
+            previous_note_length = note[1]
+            current_passage = []
+            continue
 
+        else:
+            #Calculate inteval as an int (works over octaves)
+            diff = Note.measure(previous_note,note[-1][0])
 
+            #If we have to take duration into consideration calculate relative duration
+            #ev. TODO not precicely what it does but allows repetitions with all same note duration pass
+            if with_duration:
+                current_passage.append([diff, (previous_note_length - note[1])])
+                previous_note_length = note[1]
+            
+            #If we don't consider duration just add interval
+            else:
+                current_passage.append(diff)
+
+            #Set previous note to be current one
+            previous_note = note[-1][0]
+            
+            #starting with the longes possible passage calculate the possible passages from current_passage
+            for i in range(len(current_passage)):
+                tmp = str(current_passage[i:len(current_passage)]) #key
+
+                #if passage is already added increace occurance of passage
+                if tmp in passage_repetitions:
+                    passage_repetitions[tmp] += 1.0
+                    print(tmp)
+                    break
+                #If passage isn't added to dictionary, add it
+                else: 
+                    passage_repetitions[tmp] = 0.0
+                    passage_lengths[tmp] = len(current_passage)- i + 1.0
+            
+    average_nm_of_rep = 0.0             #Will get the sum of all occurences
+    average_len_of_repetition = 0.0     #Will get the sum of all passage length of repeated passages
+    nmb_of_repeating_passages = 0.0     #Keeps track of the number of different repeated passages
+    percentage_of_repetition = 0.0      #Will get the sum of all repeated notes
+
+    for keys,occurences in passage_repetitions.items():
+        if occurences > 0.0:
+            average_nm_of_rep += occurences
+            length_of_passage = passage_lengths[keys]
+            percentage_of_repetition += (length_of_passage*occurences)
+            average_len_of_repetition += length_of_passage
+            nmb_of_repeating_passages += 1.0
+
+    #Calculate final return data
+    if nmb_of_repeating_passages > 0.0:
+        average_nm_of_rep = average_nm_of_rep/nmb_of_repeating_passages
+        average_len_of_repetition = average_len_of_repetition/nmb_of_repeating_passages
+        print(percentage_of_repetition)
+        percentage_of_repetition = percentage_of_repetition/nmb_of_notes #TODO percentage in faulty
+
+    return (average_nm_of_rep,average_len_of_repetition,percentage_of_repetition)
 #--------------------------------------------------------------------
 # count_notes_on_beat:
 # Calculates how many notes that are on a beat of its own duration beats, or 
@@ -239,8 +311,4 @@ def interval_at_beat(track1,track2,beat,int_output=False):
             note_pair = NoteContainer([pitch1[0],pitch2[0]])
             return note_pair.determine()[0]
 
-""" Can be used to test functions
-test_track = Track_Functions.init_random_track("C",True)
-print(test_track)
-print("function"(test_track))
-"""
+

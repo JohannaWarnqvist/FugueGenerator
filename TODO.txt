@@ -21,12 +21,8 @@ Tonerna funkar tillsammans med melodin (vettiga intervall mellan subject, hålla
 Mäter interval på hela låten (Kollar så att noter har “bra” interval men även så att samma intervall inte upprepas genom hela). Finns bra riktlinjer för kontrapunkt-melodiskrivande
 Rimliga intervall inom stämman (inte för många stora intervall hopp). Det finns bra riktlinjer för vad som anses vara bra enl kontrapunkt, t.ex. att följa ett intervallhopp uppåt med ett nedåt. 
 
-
 Contrapuntal motion: (Johanna)
 Kolla hur stor andel som är parallell (ska helst undvikas), similar (okej), contrary (jättebra) och oblique (okej) motion.
-
-Variation/Repetition: (Emilie)
-Mäta passager som upprepas (repetition)
 
 Progression:
 Mäta om noter efter varandra skapar tillfälliga harmonic motions (t.ex. C-E-G eller D-F#-A)
@@ -77,6 +73,10 @@ average_numb_of_chords: Mäta mängden ackord skapas av båda tracks samtidigt t
 
 Variation/Repetition: 
 repeating_note_pitch: Kollar om note pitch är densamma
+repeating_passages: Mäter genomsnittlig antal repetitioner, genomsnittlig längd av repeterande passager, hur stor bråkandel av track som repeteras nån gång under låten
+Har en valfri Bool som avgör om man räknar en repetition med samma förhållande i pitch och notlängd eller endast pitch
+                                
+Mäta passager som upprepas (repetition)
 Track_functions:
 Shift/Canon. Returns track that is shifted x duration (used for NewFugue)
 
