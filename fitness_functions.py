@@ -69,6 +69,22 @@ def calculate_fitness_modulate(self, population, from_bar, to_bar, from_key, to_
 # TODO: Create the fitness function for a harmony to another melody
 def calculate_fitness_harmony(self, population, input_melody):
     "Return a harmony to the input_melody"
+    fitness_values = np.zeros(self.population_size)
     
-    # Until it is fixed, just return what fitness function C gives.
-    return calculate_fitness_C(self, population)
+    """
+    # I started to try to write a fitness function. It works, but should be one of several 'tests'. And I don't know
+    # any common practice in how to write a fitness function, how to distribute 'points' and so on, feel free to edit /Viktoria
+    
+    # -- The following block checks if there are thirds or sixths between the voices. --
+    # It gives one "point" for each beat that fulfills the criteria. 
+    good_intervals = [3,4,8,9]          # minor/major third, minor/major sixth
+    for iPop in range(self.population_size):
+        fitness = 0
+        for beat in range(4):
+            interval = Track_Tests.interval_at_beat(input_melody,population[iPop],beat,Halftones=True)
+            if interval == None:
+                continue
+            if abs(interval) in good_intervals:
+                fitness += 1
+        fitness_values[iPop] = fitness"""
+    return fitness_values
