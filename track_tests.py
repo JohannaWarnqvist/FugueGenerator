@@ -26,6 +26,7 @@ count_notes_on_beat(track)                                  Calculates how many 
 count_notes_in_scale(track)                                 Counts the number of notes in the track that is in the correct scale.
 count_tritone_or_seventh_in_two_skips(track)                Returns the number of tritones or sevenths in two skips in a one-voice track.
 interval_at_beat(track1,track2,beat)                        Returns the interval between two tracks on a given beat
+contrapunctal_motion(track)                                 IN PROGRESS
 """
 
 #--------------------------------------------------------------------
@@ -327,3 +328,20 @@ def interval_at_beat(track1,track2,beat,return_int=False):
         note_pair = NoteContainer([pitch1[0],pitch2[0]])
         return note_pair.determine()[0]
 
+# ---------------------------------------------
+# contrapunctal_motion: 
+# IN PROGRESS
+# Will measure what contrapunctal motion is used in the track, or how much if which if several.
+# ---------------------------------------------
+
+def contrapunctal_motion(first_voice, second_voice):
+    notes_first = first_voice.get_notes()
+    notes_second = second_voice.get_notes()    
+    
+    previous_note_first = None
+    previous_note_second = None
+    for note in notes_first:
+        if previous_note_first is None:
+            previous_note_first = note
+            previous_note_second = note
+            continue
