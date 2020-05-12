@@ -275,40 +275,55 @@ def count_notes_in_scale(track, key):
 # count_tritone_or_seventh_in_two_skips(track): 
 # Please feel free to rename !!
 # Returns the number of tritones or sevenths in two skips in a one-voice track.
+# Could be altered to return the indeces of the ugly intervals if that turns out to be useful.
 # Limitation: if input has notecontainers with more than one pitch, it counts the first note in the container.
 # -------------------------------------------
-def count_tritone_or_seventh_in_two_skips(track):
+def count_tritone_or_seventh_in_two_skips(track, return_index = False):
     "Returns the number of tritones or sevenths in two skips in a one-voice track."
+    
+    unwanted_intervals = [6,10,11]  # tritone, minor and major seventh 
+    
+    # list of all notes
+    notes = [track[i][j][2] for i in range(len(track.bars)) for j in range(len(track[i]))]
 
-    # All possible names of the 6, 10 and 11 halftone intervals
-    unwanted_intervals = ['augmented fourth','minor fifth','major seventh','minor seventh']
-    
-    # List of all notes in the track
-    notes = [track[i][j][2][0] for i in range(len(track.bars)) for j in range(len(track[i]))]
-    
-    # Count number of 'ugly' intervals 
+    # count nmb of unwanted intervals
     nmb = 0
     for i in range(len(notes)-2):
-        note_pair = NoteContainer([notes[i],notes[i+2]])
-        interval = note_pair.determine()    
-        if interval[0] in unwanted_intervals: # interval[0] because interval is a list, apparantly
-            nmb += 1
+        note1 = notes[i]
+        note2 = notes[i+2]
+        if note1 is None or note2 is None:  # make sure notes aren't pauses
+            continue
+        interval = Note(note1[0]).measure(Note(note2[0]))   #returns the nmb. of halftones between the notes
+        if abs(interval)%12 in unwanted_intervals:
+                nmb += 1
     return nmb
 
 # ---------------------------------------------
 # interval_at_beat: 
 # Returns the interval between two tracks on the given beat
-# Returns a string by default, returns number of halftones if Halftones=True, returns None if there is a pause in any voice
+# Returns a string by default, returns number of halftones if return_int=True, returns None if there is a pause in any voice
+# Limitaion: Does not take octaves into account, example: [C4, G4] = [C4, G5] = fifth.
 # ---------------------------------------------
-def interval_at_beat(track1,track2,beat,int_output=False):
+def interval_at_beat(track1,track2,beat,return_int=False):
     pitch1 = Track_Functions.pitch_at_given_beat(track1,beat)
     pitch2 = Track_Functions.pitch_at_given_beat(track2,beat)
-    if isinstance(pitch1,NoteContainer) and isinstance(pitch2,NoteContainer):
-        if int_output == True:
-            interval_halftones = Note(pitch1[0]).measure(Note(pitch2[0]))
-            return interval_halftones
-        else:
-            note_pair = NoteContainer([pitch1[0],pitch2[0]])
-            return note_pair.determine()[0]
+    
+    # Check for pauses
+    if pitch1 is None or pitch2 is None:
+        return None
 
+    # Return halftone interval if requested
+    interval_halftones = Note(pitch1[0]).measure(Note(pitch2[0]))
+    if return_int == True:    
+        return interval_halftones
+    
+    # Else return a str
+    # Workaround for the fact that the .determine function doesn't return unisons or octaves
+    if interval_halftones == 0:
+        return 'perfect unison'
+    elif interval_halftones%12 == 0:
+        return 'octave'
+    else:
+        note_pair = NoteContainer([pitch1[0],pitch2[0]])
+        return note_pair.determine()[0]
 
