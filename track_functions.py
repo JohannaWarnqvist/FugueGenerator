@@ -11,7 +11,6 @@ import mingus.core.intervals as intervals
 import mingus.core.notes as notes
 import mingus.core.scales as scales
 import mingus.core.keys as keys
-import mingus.core.chords as chord
 import mingus.midi.midi_file_in as midi
 import copy
 import random
@@ -67,7 +66,7 @@ def merge_tracks(track1,track2):
 
                 # if the notes have different length always use the shortest one
                 if note1[1] > note2[1]:
-                    merged_track.add_notes(nc,note1[2])
+                    merged_track.add_notes(nc,note2[1])
                 else:
                     merged_track.add_notes(nc,note1[1])
                 
@@ -82,6 +81,7 @@ def merge_tracks(track1,track2):
                 #If length of note1 is bigger than time until next note in track2 then cut lenght to fit
                 if note1[1] > time_to_next:
                     merged_track.add_notes(nc,time_to_next)
+                    
                 #Otherwise add note as normal
                 else: 
                     merged_track.add_notes(nc,note1[1])
@@ -103,7 +103,7 @@ def merge_tracks(track1,track2):
 
     #Add remaining notes if any from track2
     for note2 in track2_notes:
-        merged_tracks.add_notes(note2[-1],note2[0])
+        merged_track.add_notes(note2[-1],note2[1])
 
     return merged_track
 
@@ -146,10 +146,11 @@ def input_midi(midi_file):
 def init_preset_track(num):
     track = Track()
     if num==1: #C-chord
-        track + "Gb"
+        track.add_notes(None)
+        track.add_notes(None)
         nc = NoteContainer(["C","E"])
         track.add_notes(nc)
-        track + "E"
+        track + "E-5"
         track + "A-3"
         track.add_notes(None)
         track + "C-5"
@@ -159,16 +160,17 @@ def init_preset_track(num):
         track + "G-5"
         track + "C-6"
     if num==2:
-        track + "Gb"
-        track + "B-3"
+        track + "C"
         track + "D"
         track + "E"
-        track + "Gb"
-        track + "F"
-        track + "A#"
-        track + "B"
-        track + "C-5"
-        track + "D-5"
+        track + "A-2"
+        track + "C"
+        track + "D"
+        track + "E"
+        track + "F-5"
+        track + "D"
+        track + "E"
+        track + "E-5"
     if num ==3:
         test_scale = scales.Major("C")
         for i in range(7):
@@ -281,7 +283,7 @@ def transpose(track, interval, up):
       
 #--------------------------------------------------------------------
 #REVERSE DONE
-#Returns an copied and inverted track of input track
+#Returns an copied and reversed track of input track
 #--------------------------------------------------------------------
 def reverse(track):
     # Copy value of reference to aviod problems with overwriting    
@@ -477,6 +479,55 @@ def shift(track, pause_duration):
 
     return shifted_track
 
+
+# ---------------------------------------------
+# CREATE ANSWER
+# This function handles leaps from the root to the fifth, if there are any, in the subject before transposing
+# to the dominant. Such leaps are ok in the subject but should apparantly be avoided in the answer. (This is called tonal answer). 
+# ---------------------------------------------
+def create_answer(track, key):
+    # First look for any perfect fifth leaps from the root note in the melody
+    # If found, diminsh the fifth to a fourth before transposing
+    
+    track_copy = copy.deepcopy(track)
+    for i in range(len(track_copy[0])-1):
+        note1 = track_copy[0][i][2][0].name      # This monstrosity is the note name
+        if note1 == key:                    
+            note2 = track_copy[0][i+1][2][0].name
+            interval = intervals.determine(note1,note2)
+            if interval == 'perfect fifth':
+                track_copy[0][i+1][2][0].transpose('2',False)
+
+    answer = transpose_from_halfnote(track_copy,7,up=True)    
+    return answer
+
+
+# -------------------------------------------------------
+# PITCH_AT_GIVEN_BEAT
+# Returns a note container with the pitch of the note at the beat, or if there is no note exactly on the beat, the one before.
+# Useful for testing harmonies later on
+# -------------------------------------------------------
+def pitch_at_given_beat(track, beat):
+    """Returns the melody pitch at a given beat. Accepts beat as an int. Assumes beats start on 0. Assumes 4/4 time.
+    Example: Beat 3 = bar 0, beat 3. Beat 5 = bar 1, beat 1."""
+
+    # A study in python divison operators, to locate the given beat in the track.
+    bar_no = beat // 4
+    beat_in_bar = (beat % 4) / 4
+
+    # The bar that holds the given beat
+    bar = track[bar_no]
+
+    # Create a list of the timestamps in the bar
+    timestamps = [note[0] for note in bar]
+
+    # Find the index of the timestamp equal to or smaller than the given beat
+    index = timestamps.index(max(i for i in timestamps if i <= beat_in_bar))
+    
+    # Return the pitch/pitches
+    return bar[index][2]
+
+
 #-------------------------
 #ENDING WIP
 #Creates an ending to the piece
@@ -551,6 +602,8 @@ def ending(first_track, second_track, subject, key=r""):
     bar = Bar()
     bar.place_notes(cadence[3][2],1)
     second_track.add_bar(bar)
+
+
 
 #----------------------------------
 # TODO
