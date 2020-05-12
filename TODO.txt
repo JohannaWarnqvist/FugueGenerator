@@ -19,7 +19,6 @@ Generella testfunktioner för alla fitnessfunktioner:
 Intervall tester:
 Tonerna funkar tillsammans med melodin (vettiga intervall mellan subject) (is_consonant)
 Mäter interval på taktslag
-Mäter interval på hela låten (Kollar så att noter har “bra” interval men även så att samma intervall inte upprepas genom hela)
 Rimliga intervall inom stämman (inte för många stora intervall hopp)
 
 Skalor:
@@ -78,5 +77,6 @@ average_numb_of_chords: Mäta mängden ackord skapas av båda tracks samtidigt t
 
 Variation/Repetition: 
 repeating_note_pitch: Kollar om note pitch är densamma
+
 Track_functions:
 Shift/Canon. Returns track that is shifted x duration (used for NewFugue)
