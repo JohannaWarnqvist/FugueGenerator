@@ -561,6 +561,8 @@ class EvolutionaryGenerator():
             fitness_values = Fitness_Functions.calculate_fitness_modulate(self, population, self.from_bar, self.to_bar, self.from_key, self.to_key)
         elif self.fitness_function == 'harmony':
             fitness_values = Fitness_Functions.calculate_fitness_harmony(self, population, self.input_melody)
+        elif self.fitness_function == 'test':
+            fitness_values = Fitness_Functions.calculate_fitness_test(self,population, self.input_melody)
 
         return fitness_values
    

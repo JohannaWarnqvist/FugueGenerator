@@ -204,7 +204,6 @@ def repeating_passages(track, with_duration = False):
                 #if passage is already added increace occurance of passage
                 if tmp in passage_repetitions:
                     passage_repetitions[tmp] += 1.0
-                    print(tmp)
                     break
                 #If passage isn't added to dictionary, add it
                 else: 
@@ -228,7 +227,6 @@ def repeating_passages(track, with_duration = False):
     if nmb_of_repeating_passages > 0.0:
         average_nm_of_rep = average_nm_of_rep/nmb_of_repeating_passages
         average_len_of_repetition = average_len_of_repetition/nmb_of_repeating_passages
-        print(percentage_of_repetition)
         percentage_of_repetition = percentage_of_repetition/nmb_of_notes #TODO percentage in faulty
 
     return (average_nm_of_rep,average_len_of_repetition,percentage_of_repetition)

@@ -16,6 +16,9 @@ Generera subject
 Track_test (measure):
 Generella testfunktioner för alla fitnessfunktioner:
 
+Length:
+Test average length of note in track (notes right now are far to fast)
+
 Intervall tester:
 Tonerna funkar tillsammans med melodin (vettiga intervall mellan subject, hållas inom "interval of tenth"): Finns funktioner för detta, t.ex. is_consonant (all vanliga konsonanta intervall), is_imperfect_consonant (terser och sexter), mm.
 Mäter interval på hela låten (Kollar så att noter har “bra” interval men även så att samma intervall inte upprepas genom hela). Finns bra riktlinjer för kontrapunkt-melodiskrivande
