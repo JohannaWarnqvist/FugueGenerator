@@ -15,6 +15,9 @@ import mingus.midi.midi_file_in as midi
 import copy
 import random
 
+"""FUNCTION INDEX                                           (to be able to find functions easier)
+interval_at_beat(track1,track2,beat)                        Returns the interval between two tracks on a given beat.
+"""
 
 #--------------------------------------------------------------------
 #HELPER FUNCTIONS FOR TRACK OPERATIONS 
@@ -526,6 +529,35 @@ def pitch_at_given_beat(track, beat):
     
     # Return the pitch/pitches
     return bar[index][2]
+
+# ---------------------------------------------
+# interval_at_beat: 
+# Returns the interval between two tracks on the given beat
+# Returns a string by default, returns number of halftones if return_int=True, returns None if there is a pause in any voice
+# Limitation: Does not take octaves into account, example: [C4, G4] = [C4, G5] = fifth.
+# ---------------------------------------------
+def interval_at_beat(track1,track2,beat,return_int = False):
+    pitch1 = pitch_at_given_beat(track1,beat)
+    pitch2 = pitch_at_given_beat(track2,beat)
+    
+    # Check for pauses
+    if pitch1 is None or pitch2 is None:
+        return None
+
+    # Return halftone interval if requested
+    interval_halftones = Note(pitch1[0]).measure(Note(pitch2[0]))
+    if return_int == True:    
+        return interval_halftones
+    
+    # Else return a str
+    # Workaround for the fact that the .determine function doesn't return unisons or octaves
+    if interval_halftones == 0:
+        return 'perfect unison'
+    elif interval_halftones%12 == 0:
+        return 'octave'
+    else:
+        note_pair = NoteContainer([pitch1[0],pitch2[0]])
+        return note_pair.determine()[0]
 
 
 #-------------------------

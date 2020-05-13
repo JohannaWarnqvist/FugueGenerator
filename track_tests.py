@@ -19,14 +19,18 @@ import track_functions as Track_Functions
 """FUNCTION INDEX                                           (to be able to find functions easier)
 repeating_note_length(track)                                Calculates a fraction between the nmb of notes and the most occuring note length and returns it
 average_numb_of_chords(track1,track2)                       Returns an average numb of chords/bar created by two tracks playing simultaneously
-average_note_length_cluster(track)                          returns the average size of same length note clusters
+average_note_length_cluster(track)                          Returns the average size of same length note clusters
 repeating_note_pitch(track, (optional bool exact))          Calculates a fraction between the nmb of notes and the most occuring note pitch and returns it
-repeating_passages(track, (optional bool with_duration))    returns (average_nm_of_rep,average_len_of_repetition,(percentage_of_repetition- kinda works but not perfect))
+repeating_passages(track, (optional bool with_duration))    Returns (average_nm_of_rep,average_len_of_repetition,(percentage_of_repetition- kinda works but not perfect))
 count_notes_on_beat(track)                                  Calculates how many notes that are on a beat of its own duration beats, or if it is in the middle of two such beats.
 count_notes_in_scale(track)                                 Counts the number of notes in the track that is in the correct scale.
 count_tritone_or_seventh_in_two_skips(track)                Returns the number of tritones or sevenths in two skips in a one-voice track.
-interval_at_beat(track1,track2,beat)                        Returns the interval between two tracks on a given beat
-contrapunctal_motion(track)                                 IN PROGRESS
+contrapunctal_motion(track)                                 Returns dict with percentage of different contrapunctal motions used.
+motion_of_track(track)                                      Return list of which motions are in which part of track (Up, Down or Same).
+check_percentage_parallell(first_voice, second_voice, 
+    start_beat, end_beat)                                   Return dict with percentage of part of track having parallel and similar motion.
+get_all_intervals(first_voice, second_voice, 
+    start_beat = 0, end_beat = None)                        Return a list of two list, where the first contains all interval lengths in halvnote steps and the second list contains the duration of the interval in beats.
 """
 
 #--------------------------------------------------------------------
@@ -61,7 +65,7 @@ def repeating_note_length(track):
 #--------------------------------------------------------------------
 # average_numb_of_chords:
 # Returns an average numb of chords/bar created by two tracks playing simultaneously
-#TODO fix merge so that it doesn't cut length but doubles note instead
+# TODO fix merge so that it doesn't cut length but doubles note instead
 #--------------------------------------------------------------------
 def average_numb_of_chords(track1, track2):
     #Use help function merge tracks to create a track were notes from both tracks are merged into note containers
@@ -111,7 +115,7 @@ def average_note_length_clusters(track):
 #--------------------------------------------------------------------
 # repeating_note_pitch:
 # Calculates a fraction between the nmb of notes and the most occuring note pitch and returns it
-# Excat is a bool that determines if you differ C-5, C, and Cb or consider them to be the same
+# exact is a bool that determines if you differ C-5, C, and Cb or consider them to be the same
 #--------------------------------------------------------------------    
 def repeating_note_pitch(track, exact = False):
     note_generetor = copy.deepcopy(track).get_notes()
@@ -228,6 +232,7 @@ def repeating_passages(track, with_duration = False):
         percentage_of_repetition = percentage_of_repetition/nmb_of_notes #TODO percentage in faulty
 
     return (average_nm_of_rep,average_len_of_repetition,percentage_of_repetition)
+
 #--------------------------------------------------------------------
 # count_notes_on_beat:
 # Calculates how many notes that are on a beat of its own duration beats, or 
@@ -244,7 +249,6 @@ def count_notes_on_beat(track):
     for note in note_containers:
         total_nr_of_notes += 1
         # Get the note from the container
-        print(note)
         note_duration = note[1]
         note_beat = note[0]
         if (note_beat % (1/note_duration)) == 0:
@@ -300,41 +304,13 @@ def count_tritone_or_seventh_in_two_skips(track, return_index = False):
     return nmb
 
 # ---------------------------------------------
-# interval_at_beat: 
-# Returns the interval between two tracks on the given beat
-# Returns a string by default, returns number of halftones if return_int=True, returns None if there is a pause in any voice
-# Limitaion: Does not take octaves into account, example: [C4, G4] = [C4, G5] = fifth.
-# ---------------------------------------------
-def interval_at_beat(track1,track2,beat,return_int=False):
-    pitch1 = Track_Functions.pitch_at_given_beat(track1,beat)
-    pitch2 = Track_Functions.pitch_at_given_beat(track2,beat)
-    
-    # Check for pauses
-    if pitch1 is None or pitch2 is None:
-        return None
-
-    # Return halftone interval if requested
-    interval_halftones = Note(pitch1[0]).measure(Note(pitch2[0]))
-    if return_int == True:    
-        return interval_halftones
-    
-    # Else return a str
-    # Workaround for the fact that the .determine function doesn't return unisons or octaves
-    if interval_halftones == 0:
-        return 'perfect unison'
-    elif interval_halftones%12 == 0:
-        return 'octave'
-    else:
-        note_pair = NoteContainer([pitch1[0],pitch2[0]])
-        return note_pair.determine()[0]
-
-# ---------------------------------------------
 # contrapunctal_motion: 
-# IN PROGRESS
-# Will measure what contrapunctal motion is used in the track, or how much of which if several.
+# Measure what contrapunctal motion is used in the track.
+# Returns a dictionary with percentage that the motion is used.
+# The dictionary has the keys: 'Similar', 'Parallel', 'Oblique', 'Contrary', 'Rest' and 'One'.
+# 'One' is for when only one voice have rest. 'Rest' is if both are resting.
 # ---------------------------------------------
 def contrapunctal_motion(first_voice, second_voice):
-    print("Start of contrapunctal_motion")
     beat_first = 0
     beat_second = 0
     
@@ -356,63 +332,54 @@ def contrapunctal_motion(first_voice, second_voice):
     total_nr_beats = len(first_voice)
     ind_first = 0
     ind_second = 0
-    while current_beat < total_nr_beats:
-            print(f"ind_first: {ind_first}")
-            print(f"ind_second: {ind_second}")
-            #breakpoint()
-            # Chech if same motion in both tracks
-            if motion_first[ind_first][-1] == motion_second[ind_second][-1]:
-                # Check if both are resting
-                if motion_first[ind_first][-1] == 'Rest':
-                    current_motion = 'Rest'
-                    rest_motion += current_beat - previous_beat
-                else:
-                    # Check if parallel or similar
-                    parallel = check_if_parallell(first_voice, second_voice, previous_beat, current_beat)
-                    
-                    if parallel:
-                        current_motion = 'Parallel'
-                        parallel_motion += current_beat - previous_beat
-
-                    else:
-                        current_motion = 'Similar'
-                        similar_motion += current_beat - previous_beat
-            
-            # Check if one track is 'Same', then oblique
-            elif motion_first[ind_first][-1] == 'Same' or motion_second[ind_second][-1] == 'Same':
-                current_motion = 'Oblique'
-                oblique_motion += current_beat - previous_beat
-            # Check if one track is resting, then 'One'
-            elif motion_first[ind_first][-1] == 'Rest' or motion_second[ind_second][-1] == 'Rest':
-                current_motion = 'One'
-                one_motion += current_beat - previous_beat
-            # Otherwise motion is in opposite directions and contrary
+    while current_beat <= total_nr_beats:
+        # Check if same motion in both tracks
+        if motion_first[ind_first][-1] == motion_second[ind_second][-1]:
+            # Check if both are resting
+            if motion_first[ind_first][-1] == 'Rest':
+                current_motion = 'Rest'
+                rest_motion += current_beat - previous_beat
             else:
-                current_motion = 'Contrary'
-                contrary_motion += current_beat - previous_beat
-            
-            # Add motion to list
-            contrapunctal_motion.append([previous_beat, current_beat-previous_beat, current_motion])
-            
-            # Update beats and indices
-            previous_beat = current_beat
-            old_ind_first = ind_first
-            if motion_first[ind_first][0] + motion_first[ind_first][1] <= motion_second[ind_second][0] + motion_second[ind_second][1]:
-                current_motion = motion_first[ind_first][0] + motion_first[ind_first][1]
-                ind_first += 1
+                # Check if parallel or similar
+                parallel_and_similar = check_percentage_parallell(first_voice, second_voice, previous_beat, current_beat)
                 
-            if motion_first[old_ind_first][0] + motion_first[old_ind_first][1] >= motion_second[ind_second][0] + motion_second[ind_second][1]:
-                current_motion = motion_second[ind_second][0] + motion_second[ind_second][1]
-                ind_second += 1
-    
+                current_motion = 'Parallel and similar'
+                parallel_motion += (current_beat - previous_beat)*parallel_and_similar['Parallel']
+                similar_motion += (current_beat - previous_beat)*parallel_and_similar['Similar']
+        
+        # Check if one track is 'Same', then oblique
+        elif motion_first[ind_first][-1] == 'Same' or motion_second[ind_second][-1] == 'Same':
+            current_motion = 'Oblique'
+            oblique_motion += current_beat - previous_beat
+        # Check if one track is resting, then 'One'
+        elif motion_first[ind_first][-1] == 'Rest' or motion_second[ind_second][-1] == 'Rest':
+            current_motion = 'One'
+            one_motion += current_beat - previous_beat
+        # Otherwise motion is in opposite directions and contrary
+        else:
+            current_motion = 'Contrary'
+            contrary_motion += current_beat - previous_beat
+        
+        # Add motion to list
+        contrapunctal_motion.append([previous_beat, current_beat-previous_beat, current_motion])
+        
+        # Update beats and indices
+        previous_beat = current_beat
+        old_ind_first = ind_first
+        if motion_first[ind_first][0] + motion_first[ind_first][1] <= motion_second[ind_second][0] + motion_second[ind_second][1]:
+            if motion_first[ind_first][0] + motion_first[ind_first][1] == total_nr_beats:
+                break
+            
+            ind_first += 1
+            current_beat = motion_first[ind_first][0] + motion_first[ind_first][1]
+            
+        if motion_first[old_ind_first][0] + motion_first[old_ind_first][1] >= motion_second[ind_second][0] + motion_second[ind_second][1]:
+            ind_second += 1
+            current_beat = motion_second[ind_second][0] + motion_second[ind_second][1]
     contrapunctal_motion_values = {'Contrary': contrary_motion/total_nr_beats, 'Parallel': parallel_motion/total_nr_beats, 
                     'Oblique': oblique_motion/total_nr_beats, 'Similar': similar_motion/total_nr_beats, 
                     'Rest': rest_motion/total_nr_beats, 'One': one_motion/total_nr_beats}
-    print("End of contrapunctal_motion")
     return contrapunctal_motion_values
-
-# TODO: fix so that similiar and parallel can be checked within same motion part
-
 
 # ---------------------------------------------
 # track_motion: 
@@ -421,7 +388,6 @@ def contrapunctal_motion(first_voice, second_voice):
 # motion, length being the length of the motion in beats, and type is either 'Up', 'Down', 'Same' or 'Rest'.
 # ---------------------------------------------
 def motion_of_track(track):
-    print("Start of motion_of_track")
 
     # Initialize lists to contain tuples of which beats contain which motion
     motion = []
@@ -516,69 +482,80 @@ def motion_of_track(track):
     # Add the previous motion to the list
     motion.append([current_start, current_passage, current_motion])                
     
-    print(motion)
-    print("End of motion_of_track")
     return motion
-   
-def check_if_parallell(first_voice, second_voice, start_beat, end_beat):
-    print("Start of check_if_parallel")
-
-    intervals = get_all_intervals(first_voice, second_voice, start_beat, end_beat)
+ 
+# ---------------------------------------------
+# check_percentage_parallell: 
+# Help function that takes two tracks and a time span as input, and calculates how much of this part has similar and how much has parallel motion.
+# Return a dictionary with keys 'Parallel' and 'Similar' with their respective percentage.
+# ---------------------------------------------
+def check_percentage_parallell(first_voice, second_voice, start_beat, end_beat):
+    breakpoint()
+    # Get all intervals in this part, including the interval before the one at start_beat.
+    intervals, interval_lengths = get_all_intervals(first_voice, second_voice, start_beat, end_beat)
     
-    first_interval = intervals[0]
-    for interval in intervals:
-        if interval != first_interval:
-            return False
-    print("End of check_if_parallel")
+    parallel_time = 0
+    similar_time = 0
+    previous_interval = intervals[0]
+    for i in range(1,len(intervals)):
+        if intervals[i] == previous_interval:
+            parallel_time += interval_lengths[i]
+        else:
+            similar_time += interval_lengths[i]
 
-    return True
-   
-   
+    return {'Parallel': parallel_time/(parallel_time + similar_time), 'Similar': similar_time/(parallel_time + similar_time)}
+    
+# ---------------------------------------------
+# check_percentage_parallell: 
+# Help function that takes two tracks and a time span as input, and finds all intervals in this part.
+# Returns two lists. The first one with all intervals between the two tracks in halfnotes. 
+# The second one with the length of all these intervals.
+# ---------------------------------------------
+
 def get_all_intervals(first_voice, second_voice, start_beat = 0, end_beat = None):
-    print("Start of get_all_intervals")
+    """Returns two lists. The first one with all intervals between the two tracks in halfnotes. 
+    The second one with the length of all these intervals.
+    """
 
     if end_beat is None:
         end_beat = min(first_voice.current_beat, second_voice.current_beat)
     
+    
+    # Get a generator for all notes in each track and skip to the notes at start_beat
     notes_first = first_voice.get_notes()
     notes_second = second_voice.get_notes()
     
     for note_first in notes_first:
-        print(f"note_first: {note_first}")
         # If end of note is before beat, take the next note
         if note_first[0] + note_first[1] <= start_beat:
             continue
         else:
             break
 
-    print(f"first note_first: {note_first}")
     
     for note_second in notes_second:
-        print(f"note_second: {note_second}")
         # If end of note is before beat, take the next note
         if note_second[0] + note_second[1] <= start_beat:
             continue
         else:
             break
     
-    print(f"first note_second: {note_second}")
-
+    # Find all intervals
     intervals = []
+    interval_lengths = []
     beat = start_beat
     ind_first = 0
     ind_second = 0
-    print(f"end_beat: {end_beat}")
-    print(f"beat: {beat}")
     while beat < end_beat:
-        print(f"beat start of loop: {beat}")
-        current_interval = interval_at_beat(first_voice, second_voice,4*beat,return_int=True)
+        current_interval = Track_Functions.interval_at_beat(first_voice, second_voice, beat, return_int=True)
         intervals.append(current_interval)
-        print(f"note_first used: {note_first}")
-        print(f"note_second used: {note_second}")
+
+        previous_beat = beat
+        
         # Update beat and current notes
         if note_first[0]+1/note_first[1] <= note_second[0] + 1/note_second[1]:
             beat = note_first[0] + 1/note_first[1]
-            for note_first in notes_first:
+            for note_first in notes_first:                
                 if note_first[0] + 1/note_first[1] <= beat:
                     continue
                 else:
@@ -592,12 +569,8 @@ def get_all_intervals(first_voice, second_voice, start_beat = 0, end_beat = None
                     continue
                 else:
                     break
-        print(f"beat in end of loop: {beat}")
-            
-    print(f"intervals: {intervals}")
-    print("End of get_all_intervals")
-    return intervals
+        interval_lengths.append(beat-previous_beat)
+         
+    return [intervals, interval_lengths]
 
 
-print(test_track)
-contrapunctal_motion(test_track, test_track_2)
