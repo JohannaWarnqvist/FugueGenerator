@@ -528,6 +528,82 @@ def pitch_at_given_beat(track, beat):
     return bar[index][2]
 
 
+#-------------------------
+#ENDING WIP
+#Creates an ending to the piece
+#Modifies the given tracks
+#-----------------------
+
+def ending(first_track, second_track, subject, key=r""):
+
+    if not bool(key):
+        key = 'C'
+
+    cadence = [chord.I(key), chord.IV(key), chord.V(key), chord.I(key)]
+
+    #tracks = [first_track, second_track]
+
+    bar = Bar()
+    bar.place_rest(2)
+    first_track.add_bar(bar)     #Sätt något som passar med andra hälften av subjektet
+
+    while second_track[-1].current_beat < 1:       #Placing fitting notes in second to last bar
+
+        print('test1')
+        duration = 2 ** random.randint(1, 3)
+        pitch = cadence[0][random.randint(0, len(cadence[0])-1)]
+
+        # If the randomized duration doesn't fit in the bar, make it fit
+        if 1 / duration > 1 - second_track[-1].current_beat:
+            duration = 1 / (1 - second_track[-1].current_beat)
+
+        # Place the new note in the bar
+        second_track[-1].place_notes(pitch, duration)
+
+    first_track[-1].place_notes(cadence[0][0],2)
+
+    bar = Bar()
+    bar.place_notes(cadence[1][0], 2)
+    bar.place_notes(cadence[2][0], 2)
+    first_track.add_bar(bar)
+
+    bar = Bar()
+    bar.place_notes(cadence[3][0],1)
+    first_track.add_bar(bar)
+
+    bar = Bar()
+    print(bar.current_beat)
+    while bar.current_beat < 0.5:
+        print('test2')
+        # Randomize pitch and duration of each note.
+        duration = 2 ** random.randint(1, 3)
+        pitch = cadence[1][random.randint(0, len(cadence[0])-1)]
+
+        # If the randomized duration doesn't fit in the bar, make it fit
+        if 1 / duration > 1 - bar.current_beat:
+            duration = 1 / (1 - bar.current_beat)
+
+        # Place the new note in the bar
+        bar.place_notes(pitch, duration)
+    while bar.current_beat < 1:
+
+        print('test3')
+        duration = 2 ** random.randint(1, 3)
+        pitch = cadence[2][random.randint(0, len(cadence[1])-1)]
+
+        # If the randomized duration doesn't fit in the bar, make it fit
+        if 1 / duration > 1 - bar.current_beat:
+            duration = 1 / (1 - bar.current_beat)
+
+        # Place the new note in the bar
+        bar.place_notes(pitch, duration)
+    second_track.add_bar(bar)
+
+    bar = Bar()
+    bar.place_notes(cadence[3][2],1)
+    second_track.add_bar(bar)
+
+
 
 #----------------------------------
 # TODO
