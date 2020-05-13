@@ -331,17 +331,273 @@ def interval_at_beat(track1,track2,beat,return_int=False):
 # ---------------------------------------------
 # contrapunctal_motion: 
 # IN PROGRESS
-# Will measure what contrapunctal motion is used in the track, or how much if which if several.
+# Will measure what contrapunctal motion is used in the track, or how much of which if several.
 # ---------------------------------------------
-
 def contrapunctal_motion(first_voice, second_voice):
-    notes_first = first_voice.get_notes()
-    notes_second = second_voice.get_notes()    
+    print("Start of contrapunctal_motion")
+    beat_first = 0
+    beat_second = 0
     
-    previous_note_first = None
-    previous_note_second = None
-    for note in notes_first:
-        if previous_note_first is None:
-            previous_note_first = note
-            previous_note_second = note
+    motion_first = motion_of_track(first_voice)
+    motion_second = motion_of_track(second_voice)
+    
+    # Check combo of motions
+    contrapunctal_motion = []
+    parallel_motion = 0
+    similar_motion = 0
+    rest_motion = 0
+    one_motion = 0
+    oblique_motion = 0
+    contrary_motion = 0
+
+    
+    previous_beat = 0
+    current_beat = min(motion_first[0][1], motion_second[0][1])
+    total_nr_beats = len(first_voice)
+    ind_first = 0
+    ind_second = 0
+    while current_beat < total_nr_beats:
+            print(f"ind_first: {ind_first}")
+            print(f"ind_second: {ind_second}")
+            #breakpoint()
+            # Chech if same motion in both tracks
+            if motion_first[ind_first][-1] == motion_second[ind_second][-1]:
+                # Check if both are resting
+                if motion_first[ind_first][-1] == 'Rest':
+                    current_motion = 'Rest'
+                    rest_motion += current_beat - previous_beat
+                else:
+                    # Check if parallel or similar
+                    parallel = check_if_parallell(first_voice, second_voice, previous_beat, current_beat)
+                    
+                    if parallel:
+                        current_motion = 'Parallel'
+                        parallel_motion += current_beat - previous_beat
+
+                    else:
+                        current_motion = 'Similar'
+                        similar_motion += current_beat - previous_beat
+            
+            # Check if one track is 'Same', then oblique
+            elif motion_first[ind_first][-1] == 'Same' or motion_second[ind_second][-1] == 'Same':
+                current_motion = 'Oblique'
+                oblique_motion += current_beat - previous_beat
+            # Check if one track is resting, then 'One'
+            elif motion_first[ind_first][-1] == 'Rest' or motion_second[ind_second][-1] == 'Rest':
+                current_motion = 'One'
+                one_motion += current_beat - previous_beat
+            # Otherwise motion is in opposite directions and contrary
+            else:
+                current_motion = 'Contrary'
+                contrary_motion += current_beat - previous_beat
+            
+            # Add motion to list
+            contrapunctal_motion.append([previous_beat, current_beat-previous_beat, current_motion])
+            
+            # Update beats and indices
+            previous_beat = current_beat
+            old_ind_first = ind_first
+            if motion_first[ind_first][0] + motion_first[ind_first][1] <= motion_second[ind_second][0] + motion_second[ind_second][1]:
+                current_motion = motion_first[ind_first][0] + motion_first[ind_first][1]
+                ind_first += 1
+                
+            if motion_first[old_ind_first][0] + motion_first[old_ind_first][1] >= motion_second[ind_second][0] + motion_second[ind_second][1]:
+                current_motion = motion_second[ind_second][0] + motion_second[ind_second][1]
+                ind_second += 1
+    
+    contrapunctal_motion_values = {'Contrary': contrary_motion/total_nr_beats, 'Parallel': parallel_motion/total_nr_beats, 
+                    'Oblique': oblique_motion/total_nr_beats, 'Similar': similar_motion/total_nr_beats, 
+                    'Rest': rest_motion/total_nr_beats, 'One': one_motion/total_nr_beats}
+    print("End of contrapunctal_motion")
+    return contrapunctal_motion_values
+
+# TODO: fix so that similiar and parallel can be checked within same motion part
+
+
+# ---------------------------------------------
+# track_motion: 
+# Help function that gets a track as input and calculates how the motion is for different parts.
+# Returns a list of list elements in the form [start, length, type], with start being the start of the 
+# motion, length being the length of the motion in beats, and type is either 'Up', 'Down', 'Same' or 'Rest'.
+# ---------------------------------------------
+def motion_of_track(track):
+    print("Start of motion_of_track")
+
+    # Initialize lists to contain tuples of which beats contain which motion
+    motion = []
+
+
+    # Loop over all notes in first voice to decide motion
+    notes = track.get_notes()
+
+    previous_note = None
+    current_passage = 0
+    current_start = 0
+    current_motion = None
+    for note in notes:  
+
+        # If first note in track
+        if previous_note is None:
+            # If not a rest, add to first part but set which motion later
+            if not note[-1] is None:
+                previous_note = note
+                current_passage = 1/note[1]
+                continue
+            # If a rest, start a rest motion
+            else:
+                previous_note = note
+                current_passage = 1/note[1]
+                current_motion = 'Rest'
+                continue
+          
+        # If the note is a rest, end last motion and start a rest motion
+        if note[-1] is None:
+            if current_motion != 'Rest':
+                # Add the previous motion to the list
+                motion.append([current_start, current_passage, current_motion])                
+                
+                # Start new upward motion
+                current_start += current_passage
+                current_passage = 1/note[1]
+                current_motion = 'Rest'
+            else:
+                current_passage += 1/note[1]
+        
+        # Upward motion between this and previous note
+        elif note[-1][0] > previous_note[-1][0]:
+            if current_motion == 'Up':
+                current_passage += 1/note[1]                
+            elif current_motion is None:
+                current_motion = 'Up'
+                current_passage += 1/note[1]                
+            else:
+                # Add the previous motion to the list
+                motion.append([current_start, current_passage, current_motion])                
+                
+                # Start new upward motion
+                current_start += current_passage
+                current_passage = 1/note[1]
+                current_motion = 'Up'
+        
+        # Downward motion between this and previous note
+        elif note[-1][0] < previous_note[-1][0]:
+            if current_motion == 'Down':
+                current_passage += 1/note[1]                
+            elif current_motion is None:
+                current_motion = 'Down'
+                current_passage += 1/note[1]                
+            else:
+                # Add the previous motion to the list
+                motion.append([current_start, current_passage, current_motion])                
+                
+                # Start new upward motion
+                current_start += current_passage
+                current_passage = 1/note[1]
+                current_motion = 'Down'
+        
+        # No motion between this and previous note
+        elif note[-1][0] == previous_note[-1][0]:
+            if current_motion == 'Same':
+                current_passage += 1/note[1]                
+            elif current_motion is None:
+                current_motion = 'Same'
+                current_passage += 1/note[1]                
+            else:
+                # Add the previous motion to the list
+                motion.append([current_start, current_passage, current_motion])                
+                
+                # Start new upward motion
+                current_start += current_passage
+                current_passage = 1/note[1]
+                current_motion = 'Same'
+        
+        previous_note = note
+    
+    # Add the previous motion to the list
+    motion.append([current_start, current_passage, current_motion])                
+    
+    print(motion)
+    print("End of motion_of_track")
+    return motion
+   
+def check_if_parallell(first_voice, second_voice, start_beat, end_beat):
+    print("Start of check_if_parallel")
+
+    intervals = get_all_intervals(first_voice, second_voice, start_beat, end_beat)
+    
+    first_interval = intervals[0]
+    for interval in intervals:
+        if interval != first_interval:
+            return False
+    print("End of check_if_parallel")
+
+    return True
+   
+   
+def get_all_intervals(first_voice, second_voice, start_beat = 0, end_beat = None):
+    print("Start of get_all_intervals")
+
+    if end_beat is None:
+        end_beat = min(first_voice.current_beat, second_voice.current_beat)
+    
+    notes_first = first_voice.get_notes()
+    notes_second = second_voice.get_notes()
+    
+    for note_first in notes_first:
+        print(f"note_first: {note_first}")
+        # If end of note is before beat, take the next note
+        if note_first[0] + note_first[1] <= start_beat:
             continue
+        else:
+            break
+
+    print(f"first note_first: {note_first}")
+    
+    for note_second in notes_second:
+        print(f"note_second: {note_second}")
+        # If end of note is before beat, take the next note
+        if note_second[0] + note_second[1] <= start_beat:
+            continue
+        else:
+            break
+    
+    print(f"first note_second: {note_second}")
+
+    intervals = []
+    beat = start_beat
+    ind_first = 0
+    ind_second = 0
+    print(f"end_beat: {end_beat}")
+    print(f"beat: {beat}")
+    while beat < end_beat:
+        print(f"beat start of loop: {beat}")
+        current_interval = interval_at_beat(first_voice, second_voice,4*beat,return_int=True)
+        intervals.append(current_interval)
+        print(f"note_first used: {note_first}")
+        print(f"note_second used: {note_second}")
+        # Update beat and current notes
+        if note_first[0]+1/note_first[1] <= note_second[0] + 1/note_second[1]:
+            beat = note_first[0] + 1/note_first[1]
+            for note_first in notes_first:
+                if note_first[0] + 1/note_first[1] <= beat:
+                    continue
+                else:
+                    break
+        
+        if note_first[0] + 1/note_first[1] >= note_second[0] + 1/note_second[1]:
+            beat = note_second[0] + 1/note_second[1]
+            for note_second in notes_second:
+                # If end of note is before beat, take the next note
+                if note_second[0] + 1/note_second[1] <= beat:
+                    continue
+                else:
+                    break
+        print(f"beat in end of loop: {beat}")
+            
+    print(f"intervals: {intervals}")
+    print("End of get_all_intervals")
+    return intervals
+
+
+print(test_track)
+contrapunctal_motion(test_track, test_track_2)
