@@ -508,12 +508,12 @@ def create_answer(track, key):
 # Useful for testing harmonies later on
 # -------------------------------------------------------
 def pitch_at_given_beat(track, beat):
-    """Returns the melody pitch at a given beat. Accepts beat as an int. Assumes beats start on 0. Assumes 4/4 time.
-    Example: Beat 3 = bar 0, beat 3. Beat 5 = bar 1, beat 1."""
+    """Returns the melody pitch at a given beat. Assumes beats start on 0. Assumes 4/4 time where 1 beat is one bar.
+    Example: Beat 0.75 = bar 0, beat 0.75. Beat 3.25 = bar 2, beat 0.25."""
 
     # A study in python divison operators, to locate the given beat in the track.
-    bar_no = beat // 4
-    beat_in_bar = (beat % 4) / 4
+    bar_no = int(beat // 1)
+    beat_in_bar = (beat % 1)
 
     # The bar that holds the given beat
     bar = track[bar_no]
