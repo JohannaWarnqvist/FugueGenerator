@@ -1,6 +1,6 @@
 ﻿TODO:
 ----------------------------------------------
-fitness-functions:
+fitness-functions:(Emilie)
 1. Överstämma /Understämma (Kan användas som countersubject och stämma)
 
 2. Melodi som bygger ihop två delar( stämma till denna kan genereras med ovanför)

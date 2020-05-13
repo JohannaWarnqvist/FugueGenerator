@@ -237,7 +237,7 @@ def repeating_passages(track, with_duration = False):
 # count_notes_on_beat:
 # Calculates how many notes that are on a beat of its own duration beats, or 
 # if it is in the middle of two such beats.
-# Returns a list of the number of notes placed on correct beats, and the number 
+# Returns a tuple of the number of notes placed on correct beats, and the number 
 # of notes in the middle of beats, normalized over total number of notes.
 #--------------------------------------------------------------------   
 def count_notes_on_beat(track):
@@ -256,7 +256,7 @@ def count_notes_on_beat(track):
         elif (note_beat % (1/(2*note_duration))) == 0:
             placed_on_half_beat += 1
     
-    return [placed_on_beat/total_nr_of_notes, placed_on_half_beat/total_nr_of_notes]
+    return (placed_on_beat/total_nr_of_notes, placed_on_half_beat/total_nr_of_notes)
 
 #--------------------------------------------------------------------
 # count_notes_in_scale:

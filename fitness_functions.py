@@ -8,6 +8,7 @@ import numpy as np
 #import math
 #from mingus.core import *
 from mingus.containers import *
+import track_tests as measure
 #import track_functions as Track_Functions
 #import fitness_functions as Fitness_Functions 
 
@@ -88,3 +89,68 @@ def calculate_fitness_harmony(self, population, input_melody):
                 fitness += 1
         fitness_values[iPop] = fitness"""
     return fitness_values
+
+def calculate_fitness_test(self, population, input_melody):
+    # Population is a list of melodies(Tracks) to test
+    # Fitness values is a numpy list of fitness scores corresponding to the melodies in population 
+    # iPop is current index of population list   
+    fitness_values = np.zeros(self.population_size) 
+    fitness = 0.0
+
+    default_bias = 10.0
+    #Helper funtion, creates and adds punishments for differing from "perfect values"
+    def near_calc(population_value, perfect_value, bias):
+        #We can change this to be an input to change the impact of different functions later 
+        temp = abs(population_value - perfect_value) * bias *(-1.0)
+        fitness += temp
+    
+    #The bigger the fraction the bigger the reward/punishment is
+    def more_calc(population_fraction, bias):
+        #We can change this to be an input to change the impact of different functions later 
+        temp = population_fraction * bias
+        fitness += temp
+
+    #VARIABLES TO CHANGE: These are the "perfect" values
+    #frac = fraction/percentage of ...., nmb = number of...., rep = repetitions
+    frac_repeating_note_length = 0.5   
+    nmb_chords_between_tracks = 5.0
+    nmb_note_length_clusters = 3.0
+    nmb_of_passage_rep = 3.0
+    len_of_passage_rep = 3.0
+                       
+
+    #For every melody in population calculate fitness THIS IS THE BIG CALCULATION PART
+    for iPop in range(self.population_size):
+        melody = population[iPop]
+        notes = melody.get_notes()
+        #----------------------------------------------------------------------------------------------------------------    
+        #Measure closeness to ideal value
+        #Function that measures:                                        Ideal value:                    Bias:
+        near_calc(measure.repeating_note_length(melody),                frac_repeating_note_length,     default_bias)
+        near_calc(measure.average_numb_of_chords(melody,input_melody),  nmb_chords_between_tracks,      default_bias)
+        near_calc(measure.average_note_length_clusters(melody),         nmb_note_length_clusters,       default_bias)
+        
+        (x,y,frac_repeating_passage) = measure.repeating_passages(melody)
+        near_calc(x,                                                    nmb_of_passage_rep,             default_bias)
+        near_calc(y,                                                    len_of_passage_rep,             default_bias)
+        #-----------------------------------------------------------------------------------------------------------------
+        #Funtion that calculates fraction                               Bias:
+        #Rewards:
+        more_calc(frac_repeating_passage,                               default_bias) #Calculated previously
+        (on_beat,on_half_beat) = measure.count_notes_on_beat(melody)
+        more_calc(on_beat,                                              default_bias)
+        more_calc(on_half_beat,                                         default_bias)
+        more_calc(measure.count_notes_in_scale(melody),                 default_bias)             
+
+        #Punishments
+        more_calc(- measure.repeating_note_pitch(melody,True),           default_bias)
+        more_calc(- measure.count_tritone_or_seventh_in_two_skips(melody),default_bias)
+          
+
+        #Add resulting fitness value to list
+        fitness_values[iPop] = fitness
+        fitness = 0.0
+        
+    return fitness_values
+
+    
