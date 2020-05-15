@@ -80,7 +80,7 @@ class EvolutionaryGenerator():
         #self.population = self.test_population()
         
         fitness_values = np.zeros(self.population_size)
-        self.max_fitness_value = 0
+        self.max_fitness_value = -5000
         for iGen in range(self.nr_generations):
             
             # == Calculate fitness and save best individual ==
@@ -187,7 +187,6 @@ class EvolutionaryGenerator():
                 
             population.append(melody)
         
-        #print(f"Initial population: {population}")
         return population
 
     def get_random_note_pitch(self, scale_tones):
@@ -209,7 +208,6 @@ class EvolutionaryGenerator():
         It decides a beat to split and exchange tails after this beat
         between the two chromosomes.
         """
-        # TODO: Find out why bar[0][0] sometimes get error.
         
         # Decide at which semiquaver to cross
         nr_note_slots = self.nr_bars
@@ -220,6 +218,7 @@ class EvolutionaryGenerator():
         # Initialize list to save heads and tails of each chromosome      
         head_chromosome = [Track(),Track()]
         tail_chromosome = [Track(),Track()]
+        
         # Place to save the half bars that should be part of tail
         end_head_chromosome = [Bar(), Bar()]
         start_tail_chromosome = [Bar(), Bar()]
@@ -297,11 +296,7 @@ class EvolutionaryGenerator():
         return cross_chromosomes
 
     def combine_bars(self, bar1, bar2):
-        # TODO: Find out why bar2[0][0] sometimes get error
     
-        #print(f"bar1: {bar1}")
-        #print(f"bar2: {bar2}")
-
         new_bar = Bar()
         end_bar1 = bar1.current_beat
         start_bar2 = bar2[0][0]
@@ -311,11 +306,11 @@ class EvolutionaryGenerator():
             raise ValueError('Bars overlapping.')
         
         if end_bar1 < start_bar2:
+            # Fill the void with rests
             difference_duration = 1/(start_bar2 - end_bar1)
             bar1.place_rest(difference_duration)
             end_bar1 = bar1.current_beat
         
-        # perfect combo
         if end_bar1 == start_bar2:
             for note in bar1:
                 note_duration = note[1]
@@ -374,13 +369,11 @@ class EvolutionaryGenerator():
         """Mutate each gene with a certain probability. Can either split the note into two 
         notes of same pitch, shorten tone and add pause at the rest part or longer the note 
         and delete any notes that where there previously."""
-        #mutate the note by either splitting, merging with next or shortening adding a pause
+        # Mutate the note by either splitting, merging with next or shortening adding a pause
 
         mutated_chromosome = Track()
-        #print(chromosome)
         nr_notes_in_chromosome = len([i for i in chromosome.get_notes()])
         
-        #self.mutation_probability = 1 # Testing
         mutation_probability = 2/nr_notes_in_chromosome
         
         input_notes = chromosome.get_notes()
@@ -390,11 +383,7 @@ class EvolutionaryGenerator():
         current_bar = 0
         for note in input_notes:
             ind += 1
-            #if current_beat >= 1.0:
-            #    current_beat -= 1
-            #    current_bar += 1
             current_beat = (current_beat % 1)
-            #breakpoint()
             
             if current_beat == 0.0:
                 if len(mutated_chromosome) == self.nr_bars:
@@ -410,11 +399,6 @@ class EvolutionaryGenerator():
             if note_beat < current_beat and note_beat != current_beat % 1:
                 if note_beat + 1/note_duration <= current_beat:
                 
-                    #if (note_beat + 1/note_duration) != 1.0 and current_beat != 0.0:
-                    #print(f"note_beat: {note_beat}")
-                    #print(f"note_duration: {note_duration}")
-                    #print(f"current_beat: {current_beat}")
-                    #breakpoint()
                     continue
             
             
@@ -447,15 +431,13 @@ class EvolutionaryGenerator():
                 else:
                     
                     max_duration = 1/(1-(current_beat%1))
-                    #print(max_duration)
+                    
                     # Mutate the duration
                     note_duration = self.mutate_duration(note_duration, max_duration)
                     
                     # Add mutated note to the mutated chromosome
                     mutated_chromosome.add_notes(note_pitch, note_duration[0])
-                    #print(f"first: {note_duration[0]}")
                     current_beat += 1/note_duration[0]
-                    #print(f"curr: {current_beat}")
                     
                     # If duration change is negative, fill up the empty space with note of
                     # same pitch or a rest.                    
@@ -465,25 +447,18 @@ class EvolutionaryGenerator():
                             mutated_chromosome.add_notes(note_pitch, note_duration[1])
                         else:
                             mutated_chromosome.add_notes(None, note_duration[1])
-                        #print(f"second: {note_duration[1]}")
                         current_beat += 1/note_duration[1]
-                        #print(f"curr: {current_beat}")
-                    
+                        
                     continue
             # If no mutation, add the old note
             else:
                 mutated_chromosome.add_notes(note_pitch, note_duration)
                 current_beat += 1/note_duration
-            
-            #print(note_duration)        
-            #current_beat += 1/note_duration
-            #print(f"curr: {current_beat}")
-            
+                
         if len(mutated_chromosome) != self.nr_bars:
-            #print(f"mutchrom: {mutated_chromosome}")
+            # Some error must have occured
             breakpoint()
         
-        #print(f"mutchrom: {mutated_chromosome}")    
         return mutated_chromosome
 
     def mutate_pitch(self, note_pitch):
@@ -556,13 +531,13 @@ class EvolutionaryGenerator():
         elif self.fitness_function == 'pauses':
             fitness_values = Fitness_Functions.calculate_fitness_pauses(self, population)
         elif self.fitness_function == 'counter':
-            fitness_values = Fitness_Functions.calculate_fitness_counter(self, population, self.input_melody)
+            fitness_values = Fitness_Functions.calculate_fitness_counter(self, population, self.input_melody, self.key)
         elif self.fitness_function == 'modulate':
             fitness_values = Fitness_Functions.calculate_fitness_modulate(self, population, self.from_bar, self.to_bar, self.from_key, self.to_key)
         elif self.fitness_function == 'harmony':
-            fitness_values = Fitness_Functions.calculate_fitness_harmony(self, population, self.input_melody)
+            fitness_values = Fitness_Functions.calculate_fitness_harmony(self, population, self.input_melody, self.key)
         elif self.fitness_function == 'test':
-            fitness_values = Fitness_Functions.calculate_fitness_test(self,population, self.input_melody)
+            fitness_values = Fitness_Functions.calculate_fitness_test(self,population, self.input_melody, self.key)
 
         return fitness_values
    

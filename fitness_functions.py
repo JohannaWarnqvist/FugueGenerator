@@ -52,11 +52,13 @@ def calculate_fitness_pauses(self, population):
         return fitness_values
 
 # TODO: Create the fitness function for the countersubject
-def calculate_fitness_counter(self, population, input_melody):
+def calculate_fitness_counter(self, population, input_melody, key):
     "Return a countersubject to the input_melody"
     
+    fitness_values = calculate_fitness_harmony(self, population, input_melody, key, True)
+    
     # Until it is fixed, just return what fitness function C gives.
-    return calculate_fitness_C(self, population)
+    return fitness_values
     
     
 # TODO: Create the fitness function for the countersubject
@@ -68,10 +70,11 @@ def calculate_fitness_modulate(self, population, from_bar, to_bar, from_key, to_
     
     
 # TODO: Create the fitness function for a harmony to another melody
-def calculate_fitness_harmony(self, population, input_melody):
+
+def calculate_fitness_harmony_old(self, population, input_melody, counter = False):
     "Return a harmony to the input_melody"
     fitness_values = np.zeros(self.population_size)
-    
+    fitness_values = calculate_fitness_C(self, population)
     """
     # I started to try to write a fitness function. It works, but should be one of several 'tests'. And I don't know
     # any common practice in how to write a fitness function, how to distribute 'points' and so on, feel free to edit /Viktoria
@@ -89,8 +92,95 @@ def calculate_fitness_harmony(self, population, input_melody):
                 fitness += 1
         fitness_values[iPop] = fitness"""
     return fitness_values
+    
+    
+def calculate_fitness_harmony(self, population, input_melody, key, counter = False):
+    fitness_values = np.zeros(self.population_size) 
+    
 
-def calculate_fitness_test(self, population, input_melody):
+    default_bias = 10.0
+    #Helper funtion, creates and adds punishments for differing from "perfect values"
+    def near_calc(population_value, perfect_value, bias):
+        #We can change this to be an input to change the impact of different functions later 
+        return abs(population_value - perfect_value) * bias *(-1.0)
+        
+    
+    #The bigger the fraction the bigger the reward/punishment is
+    def more_calc(population_fraction, bias):
+        #We can change this to be an input to change the impact of different functions later 
+        return population_fraction * bias
+        
+
+    #VARIABLES TO CHANGE: These are the "perfect" values
+    #frac = fraction/percentage of ...., nmb = number of...., rep = repetitions
+    frac_repeating_note_length = 0.3   
+    nmb_chords_between_tracks = 5.0
+    nmb_note_length_clusters = 6.0
+    nmb_of_passage_rep = 1.0
+    len_of_passage_rep = 3.0
+    frac_same_pattern = 0.8
+                       
+
+    #For every melody in population calculate fitness THIS IS THE BIG CALCULATION PART
+    for iPop in range(self.population_size):
+        melody = population[iPop]
+        notes = melody.get_notes()
+        fitness = 1.0
+        #----------------------------------------------------------------------------------------------------------------    
+        #Measure closeness to ideal value
+        
+        #Within the melody
+        #Function that measures:                                                   Ideal value:                    Bias:
+        fitness += near_calc(measure.repeating_note_length(melody),                frac_repeating_note_length,     default_bias)
+        #fitness += near_calc(measure.average_numb_of_chords(melody,input_melody),  nmb_chords_between_tracks,      default_bias)       Error in merge 
+        fitness += near_calc(measure.average_note_length_clusters(melody),         nmb_note_length_clusters,       default_bias)
+        (x,y,frac_repeating_passage) = measure.repeating_passages(melody)
+        fitness += near_calc(x,                                                    nmb_of_passage_rep,             default_bias)
+        fitness += near_calc(y,                                                    len_of_passage_rep,             default_bias)
+        
+        # Between the melodies
+        fitness += near_calc(measure.check_same_pattern(input_melody, melody),     frac_same_pattern,              default_bias)
+        
+        #-----------------------------------------------------------------------------------------------------------------
+        #Function that calculates fraction where 1 is best                          Bias:
+        
+        #Rewards:
+        fitness += more_calc(frac_repeating_passage,                               default_bias) #Calculated previously
+        (on_beat,on_half_beat) = measure.count_notes_on_beat(melody)
+        fitness += more_calc(on_beat,                                              default_bias)
+        fitness += more_calc(on_half_beat,                                         default_bias/2)
+        fitness += more_calc(measure.count_notes_in_scale(melody, key),           default_bias)
+        fitness += more_calc(measure.check_same_pattern(input_melody, melody),     default_bias)
+        fitness += more_calc(measure.check_consonant_percentage(input_melody, melody),   default_bias)
+
+        #Punishments
+        fitness += more_calc(- measure.repeating_note_pitch(melody,True),           default_bias)
+        fitness += more_calc(- measure.count_tritone_or_seventh_in_two_skips(melody),default_bias)
+        
+        # In progress:
+        """
+        # Contrapunctal motion
+        contrapunctal_motion_values = measure.contrapunctal_motion(input_melody, melody)
+        fitness += more_calc(contrapunctal_motion_values['Contrary'],                default_bias)
+        fitness += more_calc(contrapunctal_motion_values['Oblique'],                default_bias/4)
+        fitness += more_calc(contrapunctal_motion_values['Similar'],                default_bias/4)
+
+        fitness -= more_calc(contrapunctal_motion_values['Parallel'],               default_bias/2)
+        fitness += more_calc(contrapunctal_motion_values['Rest'],                default_bias/4)
+        """        
+        
+        
+
+        #Add resulting fitness value to list
+        fitness_values[iPop] = fitness
+        
+        
+    return fitness_values
+
+
+
+
+def calculate_fitness_test(self, population, input_melody, key):
     # Population is a list of melodies(Tracks) to test
     # Fitness values is a numpy list of fitness scores corresponding to the melodies in population 
     # iPop is current index of population list   
@@ -141,7 +231,7 @@ def calculate_fitness_test(self, population, input_melody):
         (on_beat,on_half_beat) = measure.count_notes_on_beat(melody)
         fitness += more_calc(on_beat,                                              default_bias)
         fitness += more_calc(on_half_beat,                                         default_bias)
-        #fitness += more_calc(measure.count_notes_in_scale(melody),                 default_bias)            #Needs to get key somehow 
+        #fitness += more_calc(measure.count_notes_in_scale(melody, key),           default_bias)            #Needs to get key somehow 
 
         #Punishments
         fitness += more_calc(- measure.repeating_note_pitch(melody,True),           default_bias)

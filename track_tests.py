@@ -269,6 +269,9 @@ def count_notes_in_scale(track, key):
     scale_notes = keys.get_notes(key)
     notes = track.get_notes()
     for note_container in notes:
+        if note_container[-1] is None:
+            total_nr_of_notes += 1
+            continue
         note = note_container[-1][0]
         total_nr_of_notes += 1
         if note.name in scale_notes:
@@ -327,12 +330,16 @@ def contrapunctal_motion(first_voice, second_voice):
     contrary_motion = 0
 
     
-    previous_beat = 0
-    current_beat = min(motion_first[0][1], motion_second[0][1])
+    previous_beat = 0   # Start of interval
+    current_beat = min(motion_first[0][1], motion_second[0][1])     # End of interval
     total_nr_beats = len(first_voice)
     ind_first = 0
     ind_second = 0
-    while current_beat <= total_nr_beats:
+    while previous_beat < total_nr_beats:
+        if current_beat <= previous_beat:
+            print(f"previous_beat: {previous_beat}")
+            print(f"current_beat: {current_beat}")
+            breakpoint()
         # Check if same motion in both tracks
         if motion_first[ind_first][-1] == motion_second[ind_second][-1]:
             # Check if both are resting
@@ -364,18 +371,28 @@ def contrapunctal_motion(first_voice, second_voice):
         contrapunctal_motion.append([previous_beat, current_beat-previous_beat, current_motion])
         
         # Update beats and indices
-        previous_beat = current_beat
+        previous_beat = current_beat # Updating previous_beat
         old_ind_first = ind_first
-        if motion_first[ind_first][0] + motion_first[ind_first][1] <= motion_second[ind_second][0] + motion_second[ind_second][1]:
+        if motion_first[ind_first][0] + motion_first[ind_first][1] == current_beat:
+            # If reach the end of track, break
             if motion_first[ind_first][0] + motion_first[ind_first][1] == total_nr_beats:
                 break
-            
+            # Take next part of motion_first
             ind_first += 1
-            current_beat = motion_first[ind_first][0] + motion_first[ind_first][1]
             
-        if motion_first[old_ind_first][0] + motion_first[old_ind_first][1] >= motion_second[ind_second][0] + motion_second[ind_second][1]:
+        if motion_second[ind_second][0] + motion_second[ind_second][1] == current_beat:
+            # If reach the end of track, break
+            if motion_second[ind_second][0] + motion_second[ind_second][1] == total_nr_beats:
+                break
+
             ind_second += 1
+        
+        #Update current_beat to be the end of the note ending first of the two current notes
+        if motion_first[ind_first][0] + motion_first[ind_first][1] <= motion_second[ind_second][0] + motion_second[ind_second][1]:
+            current_beat = motion_first[ind_first][0] + motion_first[ind_first][1]
+        else:
             current_beat = motion_second[ind_second][0] + motion_second[ind_second][1]
+
     contrapunctal_motion_values = {'Contrary': contrary_motion/total_nr_beats, 'Parallel': parallel_motion/total_nr_beats, 
                     'Oblique': oblique_motion/total_nr_beats, 'Similar': similar_motion/total_nr_beats, 
                     'Rest': rest_motion/total_nr_beats, 'One': one_motion/total_nr_beats}
@@ -428,6 +445,14 @@ def motion_of_track(track):
                 current_motion = 'Rest'
             else:
                 current_passage += 1/note[1]
+        # If last note was a rest, end rest motion and start new motion
+        elif current_motion == 'Rest':
+                motion.append([current_start, current_passage, current_motion])
+                
+                # Start new unknown motion
+                current_start += current_passage
+                current_passage = 1/note[1]
+                current_motion = None
         
         # Upward motion between this and previous note
         elif note[-1][0] > previous_note[-1][0]:
@@ -481,7 +506,6 @@ def motion_of_track(track):
     
     # Add the previous motion to the list
     motion.append([current_start, current_passage, current_motion])                
-    
     return motion
  
 # ---------------------------------------------
@@ -492,7 +516,9 @@ def motion_of_track(track):
 def check_percentage_parallell(first_voice, second_voice, start_beat, end_beat):
     # Get all intervals in this part, including the interval before the one at start_beat.
     intervals, interval_lengths = get_all_intervals(first_voice, second_voice, start_beat, end_beat)
-    
+    #breakpoint()
+    if len(intervals) == 1:
+        return {'Parallel': 0, 'Similar': 1}
     parallel_time = 0
     similar_time = 0
     previous_interval = intervals[0]
@@ -500,8 +526,11 @@ def check_percentage_parallell(first_voice, second_voice, start_beat, end_beat):
         if intervals[i] == previous_interval:
             parallel_time += interval_lengths[i]
         else:
-            similar_time += interval_lengths[i]
-
+            similar_time += interval_lengths[i]    
+    if similar_time + parallel_time == 0:
+        print(f"similar time: {similar_time}")
+        print(f"parallel time: {parallel_time}")
+        breakpoint()
     return {'Parallel': parallel_time/(parallel_time + similar_time), 'Similar': similar_time/(parallel_time + similar_time)}
     
 # ---------------------------------------------
@@ -541,12 +570,13 @@ def get_all_intervals(first_voice, second_voice, start_beat = 0, end_beat = None
     # Find all intervals
     intervals = []
     interval_lengths = []
-    beat = start_beat
+    beat = start_beat % 1
+    bar_nr = start_beat // 1
     ind_first = 0
     ind_second = 0
-    while beat < end_beat:
+    while bar_nr + beat < end_beat:
         # Find interval
-        current_interval = Track_Functions.interval_at_beat(first_voice, second_voice, beat, return_int=True)
+        current_interval = Track_Functions.interval_at_beat(first_voice, second_voice, bar_nr + beat, return_int=True)
         
         # Save the interval
         intervals.append(current_interval)
@@ -554,25 +584,30 @@ def get_all_intervals(first_voice, second_voice, start_beat = 0, end_beat = None
         # Save beat as previous beat
         previous_beat = beat
         
+        old_note_first = note_first
         # Update beat and current notes
         if note_first[0]+1/note_first[1] <= note_second[0] + 1/note_second[1]:
             beat = note_first[0] + 1/note_first[1]
+            if beat == 1.0:
+                bar_nr += 1
+            
+            if bar_nr + (beat%1) == end_beat:
+                interval_lengths.append(beat-previous_beat)
+                break
+
             note_first = next(notes_first)
-            """for note_first in notes_first:                
-                if note_first[0] + 1/note_first[1] <= beat:
-                    continue
-                else:
-                    break"""
-        
-        if note_first[0] + 1/note_first[1] >= note_second[0] + 1/note_second[1]:
+            
+        if old_note_first[0] + 1/old_note_first[1] >= note_second[0] + 1/note_second[1]:
             beat = note_second[0] + 1/note_second[1]
+            
+            if beat == 1.0:
+                bar_nr += 1
+            
+            if bar_nr + (beat%1) == end_beat:
+                interval_lengths.append(beat-previous_beat)
+                break
             note_second = next(notes_second)
-            """for note_second in notes_second:
-                # If end of note is before beat, take the next note
-                if note_second[0] + 1/note_second[1] <= beat:
-                    continue
-                else:
-                    break"""
+        
         interval_lengths.append(beat-previous_beat)
          
     return [intervals, interval_lengths]
@@ -598,8 +633,12 @@ def check_consonant_percentage(track1, track2):
     previous_beat = 0
     end_beat = len(track1)  #nr of bars
     while bar_nr + beat < end_beat:
-        # Check if consonant
-        current_interval_is_consonant = intervals.is_consonant(note_first[-1][0].name, note_second[-1][0].name, False)
+    
+        if note_first[-1] is None or note_second[-1] is None:
+            current_interval_is_consonant = True
+        else:
+            # Check if consonant
+            current_interval_is_consonant = intervals.is_consonant(note_first[-1][0].name, note_second[-1][0].name, False)
         
         # Add the result if consonant
         if current_interval_is_consonant:
@@ -611,22 +650,20 @@ def check_consonant_percentage(track1, track2):
         # Update beat and current notes
         if note_first[0]+1/note_first[1] <= note_second[0] + 1/note_second[1]:
             beat = note_first[0] + 1/note_first[1]
-            print(beat)
             if beat == 1.0:
                 bar_nr += 1
             
-            if bar_nr + beat == end_beat:
+            if bar_nr == end_beat:
                 break
 
             note_first = next(notes_first)
             
         if note_first[0] + 1/note_first[1] >= note_second[0] + 1/note_second[1]:
             beat = note_second[0] + 1/note_second[1]
-            print(beat)
             if beat == 1.0:
                 bar_nr += 1
             
-            if bar_nr + beat == end_beat:
+            if bar_nr == end_beat:
                 break
                 
             note_second = next(notes_second)
@@ -648,19 +685,17 @@ def check_same_pattern(track1, track2):
     notes_2 = [i for i in track2.get_notes()]
     
     ind_1 = 0
-    ind_2 = 0
-    beat_1 = 0
-    beat_2 = 0
-    while ind_1 < len(notes_1) and ind_2 < len(notes_2):
+    ind_2 = 0    
+    while ind_1 < len(notes_1) and ind_2 < len(notes_2):        
+        beat_1 = notes_1[ind_1][0]
+        beat_2 = notes_2[ind_2][0]
         if beat_1 < beat_2:
             # Skip to next note in track 1
             ind_1 +=1
-            beat_1 = notes_1[ind_1][0]
             continue
         elif beat_2 < beat_1:
             # Skip to next note in track 2
             ind_2 +=1
-            beat_2 = notes_2[ind_2][0]
             continue
         
         # Check if duration is equal
@@ -671,8 +706,6 @@ def check_same_pattern(track1, track2):
         # Update indices and beats
         ind_1 += 1
         ind_2 += 1
-        beat_1 = notes_1[ind_1][0]
-        beat_2 = notes_2[ind_2][0]
         
     same_duration_percentage = same_duration/len(track1)
     
