@@ -67,8 +67,7 @@ def generate_fugue(key,subject):
     bar_5 = minor_first_voice[0]
     
     # Generate harmony in second voice in bar 5
-    minor_key = intervals.minor_third(key)
-    eg_harmony_minor = EvolutionaryGenerator(minor_key, nr_bars = 1, fitness_function = 'harmony', 
+    eg_harmony_minor = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'harmony', 
             input_melody = Track().add_bar(copy.deepcopy(minor_first_voice[0])))
 
     eg_harmony_minor.run_evolution()
@@ -76,8 +75,11 @@ def generate_fugue(key,subject):
     minor_second_voice[0] = eg_harmony_minor.best_individual[0]
 
     # Generate bar 3 and 4 as a modulation between bar 2 and 5
+    minor_key = intervals.from_shorthand(key, 'b3', False)
+    minor_key += 'm'
+
     eg_modulate_to_minor = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'modulate', 
-            from_bar = bar_2, to_bar = bar_5, from_key = 'C', to_key = 'Am')
+            from_bar = bar_2, to_bar = bar_5, from_key = key, to_key = minor_key)
 
     eg_modulate_to_minor.run_evolution()
     modulate_first_voice = copy.deepcopy(eg_modulate_to_minor.best_individual)
@@ -120,7 +122,7 @@ def generate_fugue(key,subject):
     eg_modulate_to_major.run_evolution()
     modulate_back_first_voice = copy.deepcopy(eg_modulate_to_major.best_individual)
 
-    # Generate second voice as harmony to the first voice in bar 3 and 4
+    # Generate second voice as harmony to the first voice in bar 7 and 8
     
     eg_second_voice_modulate_back = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'harmony', 
             input_melody = modulate_first_voice, from_key = 'Am', to_key = 'C')
