@@ -31,6 +31,8 @@ check_percentage_parallell(first_voice, second_voice,
     start_beat, end_beat)                                   Return dict with percentage of part of track having parallel and similar motion.
 get_all_intervals(first_voice, second_voice, 
     start_beat = 0, end_beat = None)                        Return a list of two list, where the first contains all interval lengths in halvnote steps and the second list contains the duration of the interval in beats.
+check_consonant_percentage(track1, track2)                  Returns the percentage of the tracks that have consonant intervals.
+check_same_pattern(track1, track2)                          Returns the percentage of the tracks that have the same note duration pattern.
 """
 
 #--------------------------------------------------------------------
@@ -488,7 +490,6 @@ def motion_of_track(track):
 # Return a dictionary with keys 'Parallel' and 'Similar' with their respective percentage.
 # ---------------------------------------------
 def check_percentage_parallell(first_voice, second_voice, start_beat, end_beat):
-    breakpoint()
     # Get all intervals in this part, including the interval before the one at start_beat.
     intervals, interval_lengths = get_all_intervals(first_voice, second_voice, start_beat, end_beat)
     
@@ -504,12 +505,11 @@ def check_percentage_parallell(first_voice, second_voice, start_beat, end_beat):
     return {'Parallel': parallel_time/(parallel_time + similar_time), 'Similar': similar_time/(parallel_time + similar_time)}
     
 # ---------------------------------------------
-# check_percentage_parallell: 
+# get_all_intervals: 
 # Help function that takes two tracks and a time span as input, and finds all intervals in this part.
 # Returns two lists. The first one with all intervals between the two tracks in halfnotes. 
 # The second one with the length of all these intervals.
 # ---------------------------------------------
-
 def get_all_intervals(first_voice, second_voice, start_beat = 0, end_beat = None):
     """Returns two lists. The first one with all intervals between the two tracks in halfnotes. 
     The second one with the length of all these intervals.
@@ -545,30 +545,135 @@ def get_all_intervals(first_voice, second_voice, start_beat = 0, end_beat = None
     ind_first = 0
     ind_second = 0
     while beat < end_beat:
+        # Find interval
         current_interval = Track_Functions.interval_at_beat(first_voice, second_voice, beat, return_int=True)
+        
+        # Save the interval
         intervals.append(current_interval)
 
+        # Save beat as previous beat
         previous_beat = beat
         
         # Update beat and current notes
         if note_first[0]+1/note_first[1] <= note_second[0] + 1/note_second[1]:
             beat = note_first[0] + 1/note_first[1]
-            for note_first in notes_first:                
+            note_first = next(notes_first)
+            """for note_first in notes_first:                
                 if note_first[0] + 1/note_first[1] <= beat:
                     continue
                 else:
-                    break
+                    break"""
         
         if note_first[0] + 1/note_first[1] >= note_second[0] + 1/note_second[1]:
             beat = note_second[0] + 1/note_second[1]
-            for note_second in notes_second:
+            note_second = next(notes_second)
+            """for note_second in notes_second:
                 # If end of note is before beat, take the next note
                 if note_second[0] + 1/note_second[1] <= beat:
                     continue
                 else:
-                    break
+                    break"""
         interval_lengths.append(beat-previous_beat)
          
     return [intervals, interval_lengths]
 
+# ---------------------------------------------
+# check_consonant_percentage:
+# Takes two tracks as input and calculate the percentage of the track beats where it is consonant intervals bewteen the two tracks.
+# Return a float with percentage.
+# ---------------------------------------------
+def check_consonant_percentage(track1, track2):
+    
+    # Get a generator for all notes in each track and skip to the notes at start_beat
+    notes_first = track1.get_notes()
+    notes_second = track2.get_notes()
+    
+    note_first = next(notes_first)
+    note_second = next(notes_second)
+    
+    consonant_total = 0
+    # Check all intervals
+    beat = min(1/note_first[1], 1/note_first[1])
+    bar_nr = 0
+    previous_beat = 0
+    end_beat = len(track1)  #nr of bars
+    while bar_nr + beat < end_beat:
+        # Check if consonant
+        current_interval_is_consonant = intervals.is_consonant(note_first[-1][0].name, note_second[-1][0].name, False)
+        
+        # Add the result if consonant
+        if current_interval_is_consonant:
+            consonant_total += (beat - previous_beat)
 
+        # Save beat as previous beat
+        previous_beat = beat
+        
+        # Update beat and current notes
+        if note_first[0]+1/note_first[1] <= note_second[0] + 1/note_second[1]:
+            beat = note_first[0] + 1/note_first[1]
+            print(beat)
+            if beat == 1.0:
+                bar_nr += 1
+            
+            if bar_nr + beat == end_beat:
+                break
+
+            note_first = next(notes_first)
+            
+        if note_first[0] + 1/note_first[1] >= note_second[0] + 1/note_second[1]:
+            beat = note_second[0] + 1/note_second[1]
+            print(beat)
+            if beat == 1.0:
+                bar_nr += 1
+            
+            if bar_nr + beat == end_beat:
+                break
+                
+            note_second = next(notes_second)
+    
+    consonant_rate = consonant_total/len(track1)
+    
+    return consonant_rate
+
+# ---------------------------------------------
+# check_same_pattern:
+# Takes two tracks as input and calculate the percentage of the track beats where both tracks have notes with same start beat and same duration.
+# Return a float with percentage.
+# ---------------------------------------------
+def check_same_pattern(track1, track2):
+    
+    same_duration = 0
+    
+    notes_1 = [i for i in track1.get_notes()]
+    notes_2 = [i for i in track2.get_notes()]
+    
+    ind_1 = 0
+    ind_2 = 0
+    beat_1 = 0
+    beat_2 = 0
+    while ind_1 < len(notes_1) and ind_2 < len(notes_2):
+        if beat_1 < beat_2:
+            # Skip to next note in track 1
+            ind_1 +=1
+            beat_1 = notes_1[ind_1][0]
+            continue
+        elif beat_2 < beat_1:
+            # Skip to next note in track 2
+            ind_2 +=1
+            beat_2 = notes_2[ind_2][0]
+            continue
+        
+        # Check if duration is equal
+        if notes_1[ind_1][1] == notes_2[ind_2][1]:
+            # Add the duration (in beats) to same_duration
+            same_duration += 1/notes_1[ind_1][1]
+
+        # Update indices and beats
+        ind_1 += 1
+        ind_2 += 1
+        beat_1 = notes_1[ind_1][0]
+        beat_2 = notes_2[ind_2][0]
+        
+    same_duration_percentage = same_duration/len(track1)
+    
+    return same_duration_percentage
