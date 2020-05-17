@@ -33,6 +33,7 @@ get_all_intervals(first_voice, second_voice,
     start_beat = 0, end_beat = None)                        Return a list of two list, where the first contains all interval lengths in halvnote steps and the second list contains the duration of the interval in beats.
 check_consonant_percentage(track1, track2)                  Returns the percentage of the tracks that have consonant intervals.
 check_same_pattern(track1, track2)                          Returns the percentage of the tracks that have the same note duration pattern.
+count_fraction_of_good_melody_intervals(track)              Returns the percentage of good intervals in a melody
 """
 
 #--------------------------------------------------------------------
@@ -710,3 +711,37 @@ def check_same_pattern(track1, track2):
     same_duration_percentage = same_duration/len(track1)
     
     return same_duration_percentage
+
+# ------------------------------------------
+# count_fraction_of_good_melody_intervals: 
+# Checks what fraction of a melody that use 'good' intervals: No big jumps or dissonant intervals allowed,
+# according to #2 in this list https://en.wikipedia.org/wiki/Counterpoint#Considerations_for_all_species
+#
+# Does not take tonality into account! Could be extended if needed. 
+# ------------------------------------------
+def count_fraction_of_good_melody_intervals(track):
+    # The melody we test is the track melody without pauses. It will work if the melody has multiple pitches
+    # in the same noteContainer, but it uses the first note in each container. A way to make it smarter would
+    # be to use the highest pitch, but I don't think that's necessary for now
+    melody = [note[2][0] for note in track.get_notes() if note[2]]
+    good_intervals = [0,1,2,3,4,5,7,12]      
+    
+    # count number of good intervals 
+    nmb = 0
+    for i in range(len(melody)-1):
+        interval = Note(melody[i]).measure(Note(melody[i+1]))
+        if abs(interval) in good_intervals:
+            nmb += 1     # one point if good interval    
+        
+        elif interval in [8,9] and i+2 < len(melody):
+            # if the interval was a sixth up, count as good only if it is followed by downward motion
+            # (doesn't matter here what kind of downward motion - if it's 'good', it will get a point
+            # in the next iteration of the loop)
+            next_interval = Note(melody[i+1]).measure(Note(melody[i+2]))
+            if next_interval < 0:
+                nmb +=1
+
+    # return fraction of good intervals in the melody
+    return nmb / (len(melody)-1)
+
+
