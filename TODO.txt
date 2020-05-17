@@ -22,9 +22,10 @@ Test average length of note in track (notes right now are far to fast)
 Intervall tester:
 * (Kollar consonant, men inte tenth änsålänge) Tonerna funkar tillsammans med melodin (vettiga intervall mellan subject, hållas inom "interval of tenth"): Finns funktioner för detta, t.ex. is_consonant (all vanliga konsonanta intervall), is_imperfect_consonant (terser och sexter), mm.
 
-* Mäter interval på hela låten (Kollar så att noter har “bra” interval men även så att samma intervall inte upprepas genom hela). Finns bra riktlinjer för kontrapunkt-melodiskrivande
+* Mäter interval på hela låten (Kollar så att noter har “bra” interval men även så att samma intervall inte upprepas genom hela).
 
-* Rimliga intervall inom stämman (inte för många stora intervall hopp). Det finns bra riktlinjer för vad som anses vara bra enl kontrapunkt, t.ex. att följa ett intervallhopp uppåt med ett nedåt. 
+* Testa om kontrapunkt-regler följs inom stämmor: https://en.wikipedia.org/wiki/Counterpoint#Considerations_for_all_species
+Just nu finns count_fraction_of_good_melody_intervals som testar punkt 2.
 
 Contrapuntal motion: (Johanna)
 Kolla hur stor andel som är parallell (ska helst undvikas), similar (okej), contrary (jättebra) och oblique (okej) motion.
@@ -94,6 +95,7 @@ Mäter interval på taktslag.
 Ingen tritone i en tre-tons-passage (F-A-B är inte bra för F och B har en tritone mellan sig). 
 Inte heller sjuor är bra i tre-tons-passage.
 Kolla andelen intervall som är consonant.
+Rimliga intervall inom en stämma 
 
 Skalor:
 Hur många noter är i skalan
