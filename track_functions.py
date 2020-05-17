@@ -178,8 +178,17 @@ def init_preset_track(num):
         test_scale = scales.Major("C")
         for i in range(7):
             track + test_scale[i]
+    if num == 4 or num == 'blinka':
+        bar = Bar()
+        bar.place_notes('C-4', 8)
+        bar.place_notes('C-4', 8)
+        bar.place_notes('G-4', 8)
+        bar.place_notes('G-4', 8)
+        bar.place_notes('A-4', 8)
+        bar.place_notes('A-4', 8)
+        bar.place_notes('G-4', 4)
+        track.add_bar(bar)
     return track
-
 
 # Helper function
 def get_interval_from_halfnotes(nmb_of_halfnotes):
