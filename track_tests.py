@@ -744,4 +744,68 @@ def count_fraction_of_good_melody_intervals(track):
     # return fraction of good intervals in the melody
     return nmb / (len(melody)-1)
 
+# ---------------------------------
+#   test_skips_and_steps_of_melody. IN PROGRESS - the points are 'off'
+#   counts skips/steps that are good according to counterpoint rules. a friend to the above function
+#   count_fraction_of_good_melody_intervals, but this considers the general motion instead of definite intervals
+#
+#   notes & limitations: 
+#       - skips only get points if they're followed by a good skip, so skips at the end of the melody never gets any points
+#       - doesn't consider disonances in two steps (this is handled by count_tritone_or_seventh...)
+#       - only looks at the general motion of the melody, not if the intervals sound good 
+#       (is partly handled by count_fraction_of_good_melody_intervals)
+#       - the names of these functions could be better/clearer 
+#  ---------------------------------
+
+def test_skips_and_steps_of_melody(track):
+    melody = [note[2][0] for note in track.get_notes() if note[2]]    
+    two_skips_warning = 0
+    last_direction = 0
+    good = 0
+    ok = 0
+    for i in range(len(melody)-1):
+        note1 = Note(melody[i])
+        note2 = Note(melody[i+1])
+        interval = note1.measure(note2)
+        
+        if interval == 0:
+            good += 1
+            two_skips_warning = 0
+            continue
+        
+        if abs(interval) <= 2:      # Steps are always good. 
+            good += 1
+            two_skips_warning = 0
+            continue
+        
+        if abs(interval) > 2:         # Skips are good depending on circumstances:    
+            if i+2 >= len(melody):
+                good += 1
+                two_skips_warning = 0
+                continue
+
+            note3 = Note(melody[i+2])
+            next_interval = note2.measure(note3)
+        
+            # (Handle the 0 case before the division below)
+            if next_interval == 0:  
+                good += 1
+                two_skips_warning = 0
+                continue
+
+            direction = interval / abs(interval)    # -1 if downward motion, 1 if upward
+            if direction != next_interval/abs(next_interval): 
+                good += 1   
+                two_skips_warning = 0                       # If next skip/step is opposite direction
+            elif abs(next_interval) < abs(interval):        # If next skip is in the same direction but smaller
+                if two_skips_warning == direction:
+                    continue
+                ok += 1
+                two_skips_warning = direction
+    
+    # this could be altered depending on how good we consider two skips in the same direcion 
+    total_score = (good + ok) / (len(melody)-1)
+    #total_score = (good + ok/2) / (len(melody)-1)
+    return total_score
+
 
