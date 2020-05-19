@@ -10,6 +10,7 @@ from mingus.containers import Note
 import mingus.core.intervals as intervals
 import mingus.core.notes as notes
 import mingus.core.scales as scales
+import mingus.core.chords as chord
 import mingus.core.keys as keys
 import mingus.midi.midi_file_in as midi
 import copy
@@ -580,19 +581,39 @@ def ending(first_track, second_track, subject, key=r""):
     if not bool(key):
         key = 'C'
 
+    canon_subject = shift(subject, 2)
+
     cadence = [chord.I(key), chord.IV(key), chord.V(key), chord.I(key)]
 
-    #tracks = [first_track, second_track]
+    notes = []
+
+    for note in canon_subject[-1]:
+        if note[-1][0].name not in notes:
+            notes.append(note[-1][0].name)
 
     bar = Bar()
-    bar.place_rest(2)
+
+    # Hitta om det finns ett ackord med de sista noterna i subjektet i, i så fall, komplettera det ackordet
+    if len(notes) <= 2 or len(chord.determine(notes,True)) == 0:
+        chord_notes = [intervals.fourth(notes[0], key)]
+    else:
+        subject_chord = chord.determine(notes, True)[0]
+        chord_notes = chord.from_shorthand(subject_chord)
+        if len(chord_notes) != len(notes):
+            for note in notes:
+                chord_notes.remove(note)
+        else:
+            chord_notes = chord_notes[0]
+
+    bar.place_notes(chord_notes[random.randint(0, len(chord_notes) - 1)], 2)
+
     first_track.add_bar(bar)     #Sätt något som passar med andra hälften av subjektet
 
     while second_track[-1].current_beat < 1:       #Placing fitting notes in second to last bar
 
-        print('test1')
+        #print('test1')
         duration = 2 ** random.randint(1, 3)
-        pitch = cadence[0][random.randint(0, len(cadence[0])-1)]
+        pitch = cadence[0][random.randint(1, len(cadence[0])-1)]
 
         # If the randomized duration doesn't fit in the bar, make it fit
         if 1 / duration > 1 - second_track[-1].current_beat:
@@ -613,12 +634,11 @@ def ending(first_track, second_track, subject, key=r""):
     first_track.add_bar(bar)
 
     bar = Bar()
-    print(bar.current_beat)
     while bar.current_beat < 0.5:
-        print('test2')
+        #print('test2')
         # Randomize pitch and duration of each note.
         duration = 2 ** random.randint(1, 3)
-        pitch = cadence[1][random.randint(0, len(cadence[0])-1)]
+        pitch = cadence[1][random.randint(1, len(cadence[1])-1)]
 
         # If the randomized duration doesn't fit in the bar, make it fit
         if 1 / duration > 1 - bar.current_beat:
@@ -628,9 +648,9 @@ def ending(first_track, second_track, subject, key=r""):
         bar.place_notes(pitch, duration)
     while bar.current_beat < 1:
 
-        print('test3')
+        #print('test3')
         duration = 2 ** random.randint(1, 3)
-        pitch = cadence[2][random.randint(0, len(cadence[1])-1)]
+        pitch = cadence[2][random.randint(1, len(cadence[2])-1)]
 
         # If the randomized duration doesn't fit in the bar, make it fit
         if 1 / duration > 1 - bar.current_beat:

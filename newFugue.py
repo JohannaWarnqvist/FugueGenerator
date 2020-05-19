@@ -112,7 +112,6 @@ def generate_fugue(key,subject):
     bar_9 = canon_first_voice[0]
 
     canon_second_voice = Track_Functions.shift(subject, 2)
-    
 
     # Create modulation from minor to major in 7 and 8
     
@@ -137,6 +136,8 @@ def generate_fugue(key,subject):
     
     Track_Functions.add_tracks(first_voice, canon_first_voice)
     Track_Functions.add_tracks(second_voice, canon_second_voice)
+
+    Track_Functions.ending(first_voice, second_voice, subject, key)
     
     #Add voices together to create a final composition
     fugue.add_track(first_voice)
@@ -153,6 +154,7 @@ def generate_fugue(key,subject):
 
 #Test for debugging
 test_track = Track_Functions.init_random_track("C",True)
+#test_track = Track_Functions.init_preset_track('blinka')
 generate_fugue("C",test_track)
 
 
