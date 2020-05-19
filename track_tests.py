@@ -315,6 +315,11 @@ def count_tritone_or_seventh_in_two_skips(track, return_index = False):
 # 'One' is for when only one voice have rest. 'Rest' is if both are resting.
 # ---------------------------------------------
 def contrapunctal_motion(first_voice, second_voice):
+    
+    if len(first_voice) == 0:
+        print('Error occured')
+        breakpoint()
+
     beat_first = 0
     beat_second = 0
     
@@ -515,6 +520,11 @@ def motion_of_track(track):
 # Return a dictionary with keys 'Parallel' and 'Similar' with their respective percentage.
 # ---------------------------------------------
 def check_percentage_parallell(first_voice, second_voice, start_beat, end_beat):
+    
+    if len(first_voice) == 0:
+        print('Error occured')
+        breakpoint()
+
     # Get all intervals in this part, including the interval before the one at start_beat.
     intervals, interval_lengths = get_all_intervals(first_voice, second_voice, start_beat, end_beat)
     #breakpoint()
@@ -545,6 +555,10 @@ def get_all_intervals(first_voice, second_voice, start_beat = 0, end_beat = None
     The second one with the length of all these intervals.
     """
 
+    if len(first_voice) == 0:
+        print('Error occured')
+        breakpoint()
+
     if end_beat is None:
         end_beat = min(first_voice.current_beat, second_voice.current_beat)
     
@@ -552,18 +566,21 @@ def get_all_intervals(first_voice, second_voice, start_beat = 0, end_beat = None
     # Get a generator for all notes in each track and skip to the notes at start_beat
     notes_first = first_voice.get_notes()
     notes_second = second_voice.get_notes()
-    
+    #breakpoint()
+    first_beat = 0
     for note_first in notes_first:
         # If end of note is before beat, take the next note
-        if note_first[0] + note_first[1] <= start_beat:
+        if first_beat + 1/note_first[1] <= start_beat:
+            first_beat += 1/note_first[1]
             continue
         else:
             break
 
-    
+    second_beat = 0
     for note_second in notes_second:
         # If end of note is before beat, take the next note
-        if note_second[0] + note_second[1] <= start_beat:
+        if second_beat + 1/note_second[1] <= start_beat:
+            second_beat += 1/note_second[1]
             continue
         else:
             break
@@ -571,13 +588,12 @@ def get_all_intervals(first_voice, second_voice, start_beat = 0, end_beat = None
     # Find all intervals
     intervals = []
     interval_lengths = []
-    beat = start_beat % 1
-    bar_nr = start_beat // 1
+    beat = start_beat
     ind_first = 0
     ind_second = 0
-    while bar_nr + beat < end_beat:
+    while beat < end_beat:
         # Find interval
-        current_interval = Track_Functions.interval_at_beat(first_voice, second_voice, bar_nr + beat, return_int=True)
+        current_interval = Track_Functions.interval_at_beat(first_voice, second_voice, beat, return_int=True)
         
         # Save the interval
         intervals.append(current_interval)
@@ -586,26 +602,27 @@ def get_all_intervals(first_voice, second_voice, start_beat = 0, end_beat = None
         previous_beat = beat
         
         old_note_first = note_first
+        old_first_beat = first_beat
         # Update beat and current notes
-        if note_first[0]+1/note_first[1] <= note_second[0] + 1/note_second[1]:
-            beat = note_first[0] + 1/note_first[1]
-            if beat == 1.0:
-                bar_nr += 1
-            
-            if bar_nr + (beat%1) == end_beat:
-                interval_lengths.append(beat-previous_beat)
-                break
+        if first_beat + 1/note_first[1] <= second_beat + 1/note_second[1]:
+            first_beat += 1/note_first[1]
+            beat = first_beat
 
-            note_first = next(notes_first)
+            if first_beat == end_beat:
+                interval_lengths.append(first_beat-previous_beat)
+                break
+            try:
+                note_first = next(notes_first)
+            except:
+                print('Error now!')
+                breakpoint()
             
-        if old_note_first[0] + 1/old_note_first[1] >= note_second[0] + 1/note_second[1]:
-            beat = note_second[0] + 1/note_second[1]
-            
-            if beat == 1.0:
-                bar_nr += 1
-            
-            if bar_nr + (beat%1) == end_beat:
-                interval_lengths.append(beat-previous_beat)
+        if old_first_beat + 1/old_note_first[1] >= second_beat + 1/note_second[1]:
+            second_beat += 1/note_second[1]
+            beat = second_beat
+
+            if second_beat == end_beat:
+                interval_lengths.append(second_beat-previous_beat)
                 break
             note_second = next(notes_second)
         
@@ -809,3 +826,22 @@ def test_skips_and_steps_of_melody(track):
     return total_score
 
 
+
+# ---------------------------------------------
+# check_note_durations:
+# Check the duration of all notes.
+# Returns a dict with the number of notes having the different accepted lengths, 
+# and also the number of notes having strange durations.
+# ---------------------------------------------
+def check_note_durations(track):
+    notes = track.get_notes()
+    duration_counter = {16: 0, 8: 0, 16/3: 0, 4: 0, 8/3: 0, 2: 0, 4/3: 0, 1: 0, 'Strange': 0}
+    for note in notes:
+        duration = note[1]
+        if not duration in duration_counter:
+            duration_counter['Strange'] += 1
+        else:
+            duration_counter[duration] += 1
+    
+    return duration_counter
+        

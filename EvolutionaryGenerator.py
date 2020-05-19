@@ -526,16 +526,20 @@ class EvolutionaryGenerator():
         "Calls on the wanted fitness function using self and the population as arguments."
         
         if self.fitness_function == 'C':
-            fitness_values = Fitness_Functions.calculate_fitness_C(self, population)
+            fitness_values = Fitness_Functions.calculate_fitness_C(population)
             self.global_max = 2
         elif self.fitness_function == 'pauses':
-            fitness_values = Fitness_Functions.calculate_fitness_pauses(self, population)
+            fitness_values = Fitness_Functions.calculate_fitness_pauses(population)
         elif self.fitness_function == 'counter':
-            fitness_values = Fitness_Functions.calculate_fitness_counter(self, population, self.input_melody, self.key)
+            fitness_values = Fitness_Functions.calculate_fitness_counter(population, self.input_melody, self.key)
         elif self.fitness_function == 'modulate':
-            fitness_values = Fitness_Functions.calculate_fitness_modulate(self, population, self.from_bar, self.to_bar, self.from_key, self.to_key)
+            fitness_values = Fitness_Functions.calculate_fitness_modulate(population, self.from_bar, self.to_bar, self.from_key, self.to_key)
         elif self.fitness_function == 'harmony':
-            fitness_values = Fitness_Functions.calculate_fitness_harmony(self, population, self.input_melody, self.key)
+            if len(self.input_melody) == 0:
+                print('Error occured')
+                breakpoint()
+
+            fitness_values = Fitness_Functions.calculate_fitness_harmony(self.population, self.input_melody, self.key)
         elif self.fitness_function == 'test':
             fitness_values = Fitness_Functions.calculate_fitness_test(self,population, self.input_melody, self.key)
 

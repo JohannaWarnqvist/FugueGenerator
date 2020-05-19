@@ -12,22 +12,23 @@ import track_tests as measure
 #import track_functions as Track_Functions
 #import fitness_functions as Fitness_Functions 
 
-def calculate_fitness_C(self, population):
+def calculate_fitness_C(population, nr_bars):
         """Calculate the fitness for each chromosome and return an array
         with the fitness values
         """
-        fitness_values = np.zeros(self.population_size)        
-        for iPop in range(self.population_size):
+        population_size = len(population)
+        fitness_values = np.zeros(population_size)
+        for iPop in range(population_size):
             melody = population[iPop]
             fitness = 0
             notes = melody.get_notes()
             
             for note in notes:
                 if note[-1] is None:
-                        fitness += (1/note[1])*1/self.nr_bars
+                        fitness += (1/note[1])*1/nr_bars
                 else:
                     distance = Note('C').measure(note[-1][0])
-                    fitness += (note[1] * 10*abs(distance))/self.nr_bars
+                    fitness += (note[1] * 10*abs(distance))/nr_bars
 
             if fitness == 0:
                 fitness_values[iPop] = 2
@@ -37,40 +38,49 @@ def calculate_fitness_C(self, population):
         return fitness_values
 
 
-def calculate_fitness_pauses(self, population):
-        fitness_values = np.zeros(self.population_size)
-        for iPop in range(self.population_size):
-            melody = population[iPop]
-            fitness = 0
-            notes = melody.get_notes()
-            
-            for note in notes:
-                if note[-1] is None:
-                        fitness += 1/note[1]
-                        
-            fitness_values[iPop] = fitness
-        return fitness_values
+def calculate_fitness_pauses(population):
+    population_size = len(population)
+    fitness_values = np.zeros(population_size)
+    for iPop in range(population_size):
+        melody = population[iPop]
+        fitness = 0
+        notes = melody.get_notes()
+        
+        for note in notes:
+            if note[-1] is None:
+                    fitness += 1/note[1]
+                    
+        fitness_values[iPop] = fitness
+    return fitness_values
 
-# TODO: Create the fitness function for the countersubject
-def calculate_fitness_counter(self, population, input_melody, key):
+
+# TODO: Is there any difference in counter subject and ordinary harmony?
+def calculate_fitness_counter(population, input_melody, key):
     "Return a countersubject to the input_melody"
     
-    fitness_values = calculate_fitness_harmony(self, population, input_melody, key, True)
+    fitness_values = calculate_fitness_harmony(population, input_melody, key, True)
     
     # Until it is fixed, just return what fitness function C gives.
     return fitness_values
     
-    
-# TODO: Create the fitness function for the countersubject
-def calculate_fitness_modulate(self, population, from_bar, to_bar, from_key, to_key):
+# TODO: Create a fitness function for modulating/binding together two bars 
+def calculate_fitness_modulate(population, from_bar, to_bar, from_key, to_key):
     "Return a melody that modulates from from_bar to to_bar"
     
+    # Create a list of melodies including the bar before, the generated melody and the bar after.
+    melodies = []
+    track_from_bar = Track().add_bar(from_bar)
+    track_to_bar = Track().add_bar(to_bar)
+    for melody in population:
+        track = copy.deepcopy(track_from_bar)
+        Track_Functions.add_track(track, melody)
+        Track_Functions.add_track(track, track_to_bar)
+        melodies.append(track)
+            
     # Until it is fixed, just return what fitness function C gives.
-    return calculate_fitness_C(self, population)
+    return calculate_fitness_C(melodies, nr_bars = 2)
     
     
-# TODO: Create the fitness function for a harmony to another melody
-
 def calculate_fitness_harmony_old(self, population, input_melody, counter = False):
     "Return a harmony to the input_melody"
     fitness_values = np.zeros(self.population_size)
@@ -94,8 +104,14 @@ def calculate_fitness_harmony_old(self, population, input_melody, counter = Fals
     return fitness_values
     
     
-def calculate_fitness_harmony(self, population, input_melody, key, counter = False):
-    fitness_values = np.zeros(self.population_size) 
+def calculate_fitness_harmony(population, input_melody, key, counter = False):
+
+    if len(input_melody) == 0:
+        print('Error occured')
+        breakpoint()
+
+    population_size = len(population) 
+    fitness_values = np.zeros(population_size) 
     
 
     default_bias = 10.0
@@ -122,7 +138,7 @@ def calculate_fitness_harmony(self, population, input_melody, key, counter = Fal
                        
 
     #For every melody in population calculate fitness THIS IS THE BIG CALCULATION PART
-    for iPop in range(self.population_size):
+    for iPop in range(population_size):
         melody = population[iPop]
         notes = melody.get_notes()
         fitness = 1.0
@@ -143,22 +159,29 @@ def calculate_fitness_harmony(self, population, input_melody, key, counter = Fal
         
         #-----------------------------------------------------------------------------------------------------------------
         #Function that calculates fraction where 1 is best                          Bias:
-        
+                
         #Rewards:
         fitness += more_calc(frac_repeating_passage,                               default_bias) #Calculated previously
         (on_beat,on_half_beat) = measure.count_notes_on_beat(melody)
         fitness += more_calc(on_beat,                                              default_bias)
         fitness += more_calc(on_half_beat,                                         default_bias/2)
+        # This one makes difference between Fb and E:
         fitness += more_calc(measure.count_notes_in_scale(melody, key),           default_bias)
+        
         fitness += more_calc(measure.check_same_pattern(input_melody, melody),     default_bias)
         fitness += more_calc(measure.check_consonant_percentage(input_melody, melody),   default_bias)
-
+        
+        
+        
         #Punishments
+
+        # Make difference on E and Fb and similar:
         fitness += more_calc(- measure.repeating_note_pitch(melody,True),           default_bias)
+        
         fitness += more_calc(- measure.count_tritone_or_seventh_in_two_skips(melody),default_bias)
         
         # In progress:
-        """
+        
         # Contrapunctal motion
         contrapunctal_motion_values = measure.contrapunctal_motion(input_melody, melody)
         fitness += more_calc(contrapunctal_motion_values['Contrary'],                default_bias)
@@ -167,9 +190,6 @@ def calculate_fitness_harmony(self, population, input_melody, key, counter = Fal
 
         fitness -= more_calc(contrapunctal_motion_values['Parallel'],               default_bias/2)
         fitness += more_calc(contrapunctal_motion_values['Rest'],                default_bias/4)
-        """        
-        
-        
 
         #Add resulting fitness value to list
         fitness_values[iPop] = fitness
@@ -178,13 +198,13 @@ def calculate_fitness_harmony(self, population, input_melody, key, counter = Fal
     return fitness_values
 
 
-
-
-def calculate_fitness_test(self, population, input_melody, key):
+def calculate_fitness_test(population, input_melody, key):
     # Population is a list of melodies(Tracks) to test
     # Fitness values is a numpy list of fitness scores corresponding to the melodies in population 
     # iPop is current index of population list   
-    fitness_values = np.zeros(self.population_size) 
+    
+    population_size = len(population)
+    fitness_values = np.zeros(population_size) 
     
 
     default_bias = 10.0
@@ -210,7 +230,7 @@ def calculate_fitness_test(self, population, input_melody, key):
                        
 
     #For every melody in population calculate fitness THIS IS THE BIG CALCULATION PART
-    for iPop in range(self.population_size):
+    for iPop in range(population_size):
         melody = population[iPop]
         notes = melody.get_notes()
         fitness = 1.0
