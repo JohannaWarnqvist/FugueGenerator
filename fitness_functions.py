@@ -190,6 +190,15 @@ def calculate_fitness_harmony(population, input_melody, key, counter = False):
 
         fitness -= more_calc(contrapunctal_motion_values['Parallel'],               default_bias/2)
         fitness += more_calc(contrapunctal_motion_values['Rest'],                default_bias/4)
+               
+        # check_durations:
+        # start of how to give points normalized over number of bars:
+        #points = {16: 1/16, 8: 0.5, 16/3: 1/8, 4: 2, 8/3: 0.75, 2: 1, 4/3: 1, 1: 1}
+        points = {16: 1/32, 8: 1/8, 16/3: 3/32, 4: 1/4, 8/3: 1/4, 2: 1/2, 4/3: 2/4, 1: 1}
+        accepted_durations = [16, 8, 16/3, 4, 8/3, 2, 4/3, 1]
+        durations = measure.check_note_durations(melody)
+        for iDur in accepted_durations:
+            fitness += more_calc(durations[iDur],     points[iDur])
 
         #Add resulting fitness value to list
         fitness_values[iPop] = fitness
