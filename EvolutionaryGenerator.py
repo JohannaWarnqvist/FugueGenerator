@@ -10,7 +10,7 @@ import fitness_functions as Fitness_Functions
 class EvolutionaryGenerator():
 
     def __init__(self, key, nr_bars = 2, fitness_function = 'C', global_max = None, input_melody = None, 
-            from_bar = None, to_bar = None, from_key = None, to_key = None):
+            from_bar = None, to_bar = None, from_key = None, to_key = None, wildness = False):
         "Initialize all the parameters"
         
         # When testing to regenerate same case:
@@ -26,7 +26,7 @@ class EvolutionaryGenerator():
         self.to_key = to_key
         
         self.population_size = 100
-        self.nr_generations = 100;
+        self.nr_generations = 500
         
         self.probability_rest = 0.05
         
@@ -48,9 +48,10 @@ class EvolutionaryGenerator():
         self.best_individual = None
         self.max_fitness_value = 0
         
+        self.wildness = wildness
+        
         # Deciding here which note lengths that are allowed. Maybe should be done somewhere else?
-        self.possible_lengths = [32, 16, 32/3, 8, 16/3, 4, 8/3, 2, 4/3, 1]
-        #self.possible_lengths = [16, 8, 4, 2, 1]
+        self.possible_lengths = [16, 8, 16/3, 4, 8/3, 2, 4/3, 1]
 
     def test_population(self):
         "Returns a population consisting of a single individual which is the C-scale."
@@ -109,8 +110,8 @@ class EvolutionaryGenerator():
             
             # == Crossover ==
             for iCross in range(0, self.population_size-1, 2):
-                chromosome1 = self.population[iCross]
-                chromosome2 = self.population[iCross + 1]
+                chromosome1 = tmp_population[iCross]
+                chromosome2 = tmp_population[iCross + 1]
                 
                 r_cross = rnd.random()
                 if r_cross < self.crossover_probability:
@@ -130,6 +131,7 @@ class EvolutionaryGenerator():
             
             # == Save generation ==
             self.population = tmp_population
+            
         
         # == Calculate fitness and save best individual ==
         fitness_values = self.calculate_fitness(self.population)
@@ -196,7 +198,9 @@ class EvolutionaryGenerator():
         note_letter = rnd.choice(scale_tones)
         
         # Choose one random octave, with more chance to get close to 4.
-        octave = round(np.random.normal(loc = 4, scale = 0.5))
+        octave = 4 
+        if self.wildness:
+            octave = round(np.random.normal(loc = 4, scale = 0.5))
              
         # Note: Might be problematic if a octave number that is too high or too low is chosen.
         note = Note(note_letter, octave)
@@ -210,8 +214,7 @@ class EvolutionaryGenerator():
         """
         
         # Decide at which semiquaver to cross
-        nr_note_slots = self.nr_bars
-        bar_to_break_in = rnd.randrange(nr_note_slots)
+        bar_to_break_in = rnd.randrange(self.nr_bars)
         beat_to_break_at = rnd.randrange(16)/16
         
         
@@ -302,7 +305,6 @@ class EvolutionaryGenerator():
         start_bar2 = bar2[0][0]
         
         if end_bar1 > start_bar2:
-            breakpoint()
             raise ValueError('Bars overlapping.')
         
         if end_bar1 < start_bar2:
@@ -457,8 +459,8 @@ class EvolutionaryGenerator():
                 
         if len(mutated_chromosome) != self.nr_bars:
             # Some error must have occured
-            breakpoint()
-        
+            raise ValueError('Number of bars has decreased.')
+            
         return mutated_chromosome
 
     def mutate_pitch(self, note_pitch):
@@ -489,8 +491,9 @@ class EvolutionaryGenerator():
             note_pitch = note_pitch.transpose(interval_change, up)
             for each_note_pitch in note_pitch:
                 each_note_pitch.change_octave(octave_change)
-                
-
+                if len(each_note_pitch.name) > 2:
+                    each_note_pitch = self.correct_accidentals(each_note_pitch)
+        
         return note_pitch
             
     def mutate_duration(self, note_duration, max_duration):
@@ -554,3 +557,55 @@ class EvolutionaryGenerator():
             tmp_population[i] = best_individual
 
         return tmp_population
+    
+    def correct_accidentals(self, pitch):
+        pitch.remove_redundant_accidentals()
+        ind = 0
+        while len(pitch.name) > 2:
+            ind += 1
+            if ind > 1:
+                breakpoint()
+            tone = pitch.name[0]
+            if pitch.name[1] == 'b':
+                if tone == 'C':
+                    pitch.name = 'B' + pitch.name[1:]
+                    pitch.name = pitch.name[:-1]
+                elif tone == 'F':
+                    pitch.name[0] = 'E'
+                    pitch.name = pitch.name[:-1]
+                else:
+                    if tone == 'D':
+                        pitch.name = 'C' + pitch.name[1:]
+                    elif tone == 'E':
+                        pitch.name = 'D' + pitch.name[1:]
+                        
+                    elif tone == 'G':
+                        pitch.name = 'F' + pitch.name[1:]
+                    elif tone == 'A':
+                        pitch.name = 'G' + pitch.name[1:]
+                    elif tone == 'B':
+                        pitch.name = 'A' + pitch.name[1:]
+                    pitch.name = pitch.name[:-2]
+            else:
+                if tone == 'B':
+                    pitch.name = 'C' + pitch.name[1:]
+                    pitch.name = pitch.name[:-1]
+                elif tone == 'E':
+                    pitch.name = 'F' + pitch.name[1:]
+                    pitch.name = pitch.name[:-1]
+                else:
+                    if tone == 'C':
+                        pitch.name = 'D' + pitch.name[1:]
+                    elif tone == 'D':
+                        pitch.name = 'E' + pitch.name[1:]
+                        
+                    elif tone == 'F':
+                        pitch.name = 'G' + pitch.name[1:]
+                    elif tone == 'G':
+                        pitch.name = 'A' + pitch.name[1:]
+                    elif tone == 'A':
+                        pitch.name = 'B' + pitch.name[1:]
+                    pitch.name = pitch.name[:-2]
+                            
+        return pitch
+                    
