@@ -4,12 +4,12 @@
 
 #import random as rnd
 import numpy as np
-#import copy
+import copy
 #import math
 #from mingus.core import *
 from mingus.containers import *
 import track_tests as measure
-#import track_functions as Track_Functions
+import track_functions as Track_Functions
 #import fitness_functions as Fitness_Functions 
 
 def calculate_fitness_C(population, nr_bars):
@@ -68,7 +68,7 @@ def calculate_fitness_modulate(population, from_bar, to_bar, from_key, to_key):
     "Return a melody that modulates from from_bar to to_bar"
     
     # Create a list of melodies including the bar before, the generated melody and the bar after.
-    melodies = []
+    """melodies = []
     track_from_bar = Track().add_bar(from_bar)
     track_to_bar = Track().add_bar(to_bar)
     for melody in population:
@@ -76,7 +76,7 @@ def calculate_fitness_modulate(population, from_bar, to_bar, from_key, to_key):
         Track_Functions.add_track(track, melody)
         Track_Functions.add_track(track, track_to_bar)
         melodies.append(track)
-            
+    """        
     # Until it is fixed, just return what fitness function C gives.
     return calculate_fitness_C(melodies, nr_bars = 2)
     
