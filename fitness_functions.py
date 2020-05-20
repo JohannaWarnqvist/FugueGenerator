@@ -73,12 +73,12 @@ def calculate_fitness_modulate(population, from_bar, to_bar, from_key, to_key):
     track_to_bar = Track().add_bar(to_bar)
     for melody in population:
         track = copy.deepcopy(track_from_bar)
-        Track_Functions.add_track(track, melody)
-        Track_Functions.add_track(track, track_to_bar)
+        Track_Functions.add_tracks(track, melody)
+        Track_Functions.add_tracks(track, track_to_bar)
         melodies.append(track)
     """        
     # Until it is fixed, just return what fitness function C gives.
-    return calculate_fitness_C(melodies, nr_bars = 2)
+    return calculate_fitness_C(population, nr_bars = 2)
     
     
 def calculate_fitness_harmony_old(self, population, input_melody, counter = False):
