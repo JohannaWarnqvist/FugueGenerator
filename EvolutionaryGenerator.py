@@ -544,7 +544,7 @@ class EvolutionaryGenerator():
         elif self.fitness_function == 'pauses':
             fitness_values = Fitness_Functions.calculate_fitness_pauses(population)
         elif self.fitness_function == 'counter':
-            fitness_values = Fitness_Functions.calculate_fitness_counter(population, self.input_melody, self.key)
+            fitness_values = Fitness_Functions.calculate_fitness_harmony(population, self.input_melody, self.key)
         elif self.fitness_function == 'modulate':
             fitness_values = Fitness_Functions.calculate_fitness_modulate(population, self.from_bar, self.to_bar, self.from_key, self.to_key)
         elif self.fitness_function == 'harmony':

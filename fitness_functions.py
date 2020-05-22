@@ -15,13 +15,13 @@ import track_functions as Track_Functions
 # start of how to give points normalized over number of bars:
 #points = {16: 1/16, 8: 0.5, 16/3: 1/8, 4: 2, 8/3: 0.75, 2: 1, 4/3: 1, 1: 1}
 points = {16:   1/32, 
-                  8:    1/8, 
-                  16/3: 2/32, 
-                  4:    1/4, 
-                  8/3:  1/4, 
-                  2:    1/2, 
-                  4/3:  2/4, 
-                  1:    1}
+          8:    1/8, 
+          16/3: 2/32, 
+          4:    1/4, 
+          8/3:  1/4, 
+          2:    1/2, 
+          4/3:  2/4, 
+          1:    1}
         
 accepted_durations = [16, 8, 16/3, 4, 8/3, 2, 4/3, 1]
 
@@ -83,14 +83,6 @@ def calculate_fitness_pauses(population):
         fitness_values[iPop] = fitness
     return fitness_values
 
-
-# TODO: Is there any difference in counter subject and ordinary harmony?
-def calculate_fitness_counter(population, input_melody, key):
-    "Return a countersubject to the input_melody"
-    
-    fitness_values = calculate_fitness_harmony(population, input_melody, key, True)
-    
-    return fitness_values
     
 # TODO: Create a fitness function for modulating/binding together two bars 
 def calculate_fitness_modulate(population, from_bar, to_bar, from_key, to_key, is_complex = True):

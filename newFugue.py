@@ -153,7 +153,7 @@ def generate_fugue(key,subject):
 
  
 # nr_parts tells how many parts (inverse, reverse, minor, other start note) is wanted between first subject/answer and the last stretto.
-def generate_random_fugue(key, subject, nr_parts = 1):
+def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
     #If subject doesn't fill full bars fill out rest of last bar of subject with rest
     #if last bar is not full
     if not (subject[-1].is_full()): 
@@ -192,10 +192,18 @@ def generate_random_fugue(key, subject, nr_parts = 1):
 
     variants = ['Minor', 'Reverse', 'Inverse']
     iParts = 0
-    while iParts < nr_parts:
+    
+    if order_of_parts is None:
+        order_of_parts = []
+        for i in range(nr_parts):
             rVariant = rnd.choice(variants)
+            order_of_parts.append(rVariant)
+    
+    
+    while iParts < nr_parts:
+            current_variant = order_of_parts[iParts]
             
-            if rVariant == 'Minor':
+            if current_variant == 'Minor':
                 # Generate development in minor
                 # Transposed -3 to minor (stämma i second voice tills vidare tom)
                 new_first_voice = Track_Functions.transpose_to_relative_minor(first_voice, key, False)
@@ -211,7 +219,7 @@ def generate_random_fugue(key, subject, nr_parts = 1):
                 
                 new_second_voice[0] = eg_harmony.best_individual[0]
 
-            elif rVariant == 'Reverse':
+            elif current_variant == 'Reverse':
                 # Genereate reverse development
                 
                 new_first_voice = Track_Functions.reverse(first_voice_first_part, key)
@@ -227,7 +235,7 @@ def generate_random_fugue(key, subject, nr_parts = 1):
                 #breakpoint()
                 new_second_voice[1] = eg_harmony.best_individual[0]
 
-            elif rVariant == 'Inverse':
+            elif current_variant == 'Inverse':
                 # Genereate inverse development
                 
                 new_first_voice = Track_Functions.inverse(first_voice_first_part)
@@ -237,11 +245,11 @@ def generate_random_fugue(key, subject, nr_parts = 1):
 
                 # Generate harmony in second voice first bar
                 eg_harmony = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'harmony', 
-                        input_melody = Track().add_bar(copy.deepcopy(new_first_voice[1])))
+                        input_melody = Track().add_bar(copy.deepcopy(new_first_voice[0])))
 
                 eg_harmony.run_evolution()
                 #breakpoint()
-                new_second_voice[1] = eg_harmony.best_individual[0]
+                new_second_voice[0] = eg_harmony.best_individual[0]
                 
                 
 
@@ -324,8 +332,9 @@ def generate_random_fugue(key, subject, nr_parts = 1):
  
 
 #Test for debugging
-test_track = Track_Functions.init_random_track("C",True)
+test_track = Track_Functions.init_random_track("C", True)
 #test_track = Track_Functions.init_preset_track('blinka')
-generate_random_fugue("C", test_track, 3)
+#generate_random_fugue("D", test_track, 3)
+generate_random_fugue('C', test_track, 3, ['Minor', 'Inverse', 'Reverse'])
 
 
