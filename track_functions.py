@@ -298,11 +298,13 @@ def transpose(track, interval, up):
 #REVERSE DONE
 #Returns an copied and reversed track of input track
 #--------------------------------------------------------------------
-def reverse(track):
+def reverse(track, key = 'C'):
     # Copy value of reference to aviod problems with overwriting    
     input_track = copy.deepcopy(track)
     #empty track to write to later
     reversed_track = Track()
+    b = Bar(key)
+    reversed_track.add_bar(b)
 
     #create a reversed list of notes from input track
     input_notes = input_track.get_notes()
@@ -310,7 +312,7 @@ def reverse(track):
     
     #Add notes to reversed_track
     for note in reversed_notes:
-        reversed_track.add_notes(note[-1])
+        reversed_track.add_notes(note[-1], duration = note[1])
 
     # Return reversed track
     return reversed_track
@@ -405,7 +407,7 @@ def inverse(track):
 # ----------------------------------
 def init_random_track(key, is_subject):
     notes = keys.get_notes(key)
-    bar = Bar()
+    bar = Bar(key = key)
     while bar.current_beat < 1 :
         # Randomize pitch and duration of each note. 
         duration = 2**random.randint(1,3)
@@ -463,9 +465,10 @@ def change_speed(track, factor, up=True):
 # Used for canon
 #--------------------------------------------------------------------
 def shift(track, pause_duration):
+    key = track[0].key
     shifted_track = Track()
     
-    bar = Bar()
+    bar = Bar(key = key)
     bar.place_rest(pause_duration)
     input_note_containers = track.get_notes()
     
@@ -482,7 +485,7 @@ def shift(track, pause_duration):
 
             shifted_track.add_bar(copy.deepcopy(bar))
             
-            bar = Bar()
+            bar = Bar(key = key)
             
             duration_part_2 = 1/beats_part_2
             
@@ -591,7 +594,7 @@ def ending(first_track, second_track, subject, key=r""):
         if note[-1][0].name not in notes:
             notes.append(note[-1][0].name)
 
-    bar = Bar()
+    bar = Bar(key = key)
 
     # Hitta om det finns ett ackord med de sista noterna i subjektet i, i så fall, komplettera det ackordet
     if len(notes) <= 2 or len(chord.determine(notes,True)) == 0:
@@ -624,16 +627,16 @@ def ending(first_track, second_track, subject, key=r""):
 
     first_track[-1].place_notes(cadence[0][0],2)
 
-    bar = Bar()
+    bar = Bar(key = key)
     bar.place_notes(cadence[1][0], 2)
     bar.place_notes(cadence[2][0], 2)
     first_track.add_bar(bar)
 
-    bar = Bar()
+    bar = Bar(key = key)
     bar.place_notes(cadence[3][0],1)
     first_track.add_bar(bar)
 
-    bar = Bar()
+    bar = Bar(key = key)
     while bar.current_beat < 0.5:
         #print('test2')
         # Randomize pitch and duration of each note.
@@ -660,7 +663,7 @@ def ending(first_track, second_track, subject, key=r""):
         bar.place_notes(pitch, duration)
     second_track.add_bar(bar)
 
-    bar = Bar()
+    bar = Bar(key = key)
     bar.place_notes(cadence[3][2],1)
     second_track.add_bar(bar)
 

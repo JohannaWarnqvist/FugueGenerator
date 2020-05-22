@@ -57,13 +57,13 @@ class EvolutionaryGenerator():
         "Returns a population consisting of a single individual which is the C-scale."
 
         t = Track()
-        bar = Bar()
+        bar = Bar(key = self.key)
         bar.place_notes('C', 4)
         bar.place_notes('D', 4)
         bar.place_notes('E', 4)
         bar.place_notes('F', 4)
         t.add_bar(bar)
-        bar = Bar()
+        bar = Bar(key = self.key)
         bar.place_notes('G', 4)
         bar.place_notes('A', 4)
         bar.place_notes('B', 4)
@@ -223,8 +223,8 @@ class EvolutionaryGenerator():
         tail_chromosome = [Track(),Track()]
         
         # Place to save the half bars that should be part of tail
-        end_head_chromosome = [Bar(), Bar()]
-        start_tail_chromosome = [Bar(), Bar()]
+        end_head_chromosome = [Bar(self.key), Bar(self.key)]
+        start_tail_chromosome = [Bar(self.key), Bar(self.key)]
         
         for iChrom in range(2):
             
@@ -300,7 +300,7 @@ class EvolutionaryGenerator():
 
     def combine_bars(self, bar1, bar2):
     
-        new_bar = Bar()
+        new_bar = Bar(self.key)
         end_bar1 = bar1.current_beat
         start_bar2 = bar2[0][0]
         
@@ -371,27 +371,36 @@ class EvolutionaryGenerator():
         """Mutate each gene with a certain probability. Can either split the note into two 
         notes of same pitch, shorten tone and add pause at the rest part or longer the note 
         and delete any notes that where there previously."""
-        # Mutate the note by either splitting, merging with next or shortening adding a pause
-
+        
         mutated_chromosome = Track()
+        
+        # Set key
+        b = Bar(self.key)
+        mutated_chromosome.add_bar(b)
+        
+        # Calculate number of notes in the chromosome
         nr_notes_in_chromosome = len([i for i in chromosome.get_notes()])
         
+        # Decide mutation probability
         mutation_probability = 2/nr_notes_in_chromosome
         
         input_notes = chromosome.get_notes()
-                
+          
+        notes_added = False
         ind = 0
         current_beat = 0
-        current_bar = 0
         for note in input_notes:
             ind += 1
             current_beat = (current_beat % 1)
             
-            if current_beat == 0.0:
+            if current_beat == 0.0 and notes_added:
                 if len(mutated_chromosome) == self.nr_bars:
                     break
                 else:
                     current_beat += 1
+            
+            if not notes_added:
+                notes_added = True
             
             note_beat = note[0]
             note_duration = note[1]
@@ -456,11 +465,12 @@ class EvolutionaryGenerator():
             else:
                 mutated_chromosome.add_notes(note_pitch, note_duration)
                 current_beat += 1/note_duration
-                
+                        
         if len(mutated_chromosome) != self.nr_bars:
             # Some error must have occured
+            breakpoint()
             raise ValueError('Number of bars has decreased.')
-            
+        
         return mutated_chromosome
 
     def mutate_pitch(self, note_pitch):
@@ -469,7 +479,7 @@ class EvolutionaryGenerator():
         if note_pitch is None:
             
             # Check which tones is in the scale
-            scale_tones = scales.get_notes(key = self.key)
+            scale_tones = scales.get_notes(self.key)
             
             # Generate a random pitch
             note_pitch = self.get_random_note_pitch(scale_tones)
