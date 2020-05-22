@@ -27,13 +27,14 @@ count_notes_in_scale(track)                                 Counts the number of
 count_tritone_or_seventh_in_two_skips(track)                Returns the number of tritones or sevenths in two skips in a one-voice track.
 contrapunctal_motion(track)                                 Returns dict with percentage of different contrapunctal motions used.
 motion_of_track(track)                                      Return list of which motions are in which part of track (Up, Down or Same).
-check_percentage_parallell(first_voice, second_voice, 
-    start_beat, end_beat)                                   Return dict with percentage of part of track having parallel and similar motion.
+check_parallell_and_similar(first_voice, second_voice, 
+    start_beat, end_beat)                                   Return dict with nr of beats of track having parallel and similar motion, and nr of beats with both.
 get_all_intervals(first_voice, second_voice, 
     start_beat = 0, end_beat = None)                        Return a list of two list, where the first contains all interval lengths in halvnote steps and the second list contains the duration of the interval in beats.
 check_consonant_percentage(track1, track2)                  Returns the percentage of the tracks that have consonant intervals.
 check_same_pattern(track1, track2)                          Returns the percentage of the tracks that have the same note duration pattern.
 count_fraction_of_good_melody_intervals(track)              Returns the percentage of good intervals in a melody
+check_note_durations(track)                                 Returns dict with number of notes of different accepted durations and the number of notes having other durations.
 """
 
 #--------------------------------------------------------------------
@@ -315,7 +316,6 @@ def count_tritone_or_seventh_in_two_skips(track, return_index = False):
 # 'One' is for when only one voice have rest. 'Rest' is if both are resting.
 # ---------------------------------------------
 def contrapunctal_motion(first_voice, second_voice):
-    
     if len(first_voice) == 0:
         print('Error occured')
         breakpoint()
@@ -334,7 +334,8 @@ def contrapunctal_motion(first_voice, second_voice):
     one_motion = 0
     oblique_motion = 0
     contrary_motion = 0
-
+    
+    extra_beats = 0
     
     previous_beat = 0   # Start of interval
     current_beat = min(motion_first[0][1], motion_second[0][1])     # End of interval
@@ -354,11 +355,17 @@ def contrapunctal_motion(first_voice, second_voice):
                 rest_motion += current_beat - previous_beat
             else:
                 # Check if parallel or similar
-                parallel_and_similar = check_percentage_parallell(first_voice, second_voice, previous_beat, current_beat)
+                parallel_and_similar = check_parallell_and_similar(first_voice, second_voice, previous_beat, current_beat)
                 
                 current_motion = 'Parallel and similar'
-                parallel_motion += (current_beat - previous_beat)*parallel_and_similar['Parallel']
-                similar_motion += (current_beat - previous_beat)*parallel_and_similar['Similar']
+                parallel_motion += parallel_and_similar['Parallel']
+                similar_motion += parallel_and_similar['Similar']
+                try:
+                    extra_beats += parallel_and_similar['Extra beats']
+                except:
+                    #breakpoint()
+                    print('Error!')
+                    breakpoint()
         
         # Check if one track is 'Same', then oblique
         elif motion_first[ind_first][-1] == 'Same' or motion_second[ind_second][-1] == 'Same':
@@ -375,33 +382,36 @@ def contrapunctal_motion(first_voice, second_voice):
         
         # Add motion to list
         contrapunctal_motion.append([previous_beat, current_beat-previous_beat, current_motion])
+
+        # If reach the end of track, break
+        if current_beat == total_nr_beats:
+            break
         
         # Update beats and indices
         previous_beat = current_beat # Updating previous_beat
         old_ind_first = ind_first
         if motion_first[ind_first][0] + motion_first[ind_first][1] == current_beat:
-            # If reach the end of track, break
-            if motion_first[ind_first][0] + motion_first[ind_first][1] == total_nr_beats:
-                break
             # Take next part of motion_first
-            ind_first += 1
+            ind_first += 1 
             
         if motion_second[ind_second][0] + motion_second[ind_second][1] == current_beat:
-            # If reach the end of track, break
-            if motion_second[ind_second][0] + motion_second[ind_second][1] == total_nr_beats:
-                break
-
+            # Take next part of motion_second
             ind_second += 1
         
-        #Update current_beat to be the end of the note ending first of the two current notes
-        if motion_first[ind_first][0] + motion_first[ind_first][1] <= motion_second[ind_second][0] + motion_second[ind_second][1]:
-            current_beat = motion_first[ind_first][0] + motion_first[ind_first][1]
-        else:
-            current_beat = motion_second[ind_second][0] + motion_second[ind_second][1]
+        # Update previous beat to be the start of the motion that starts last.
+        previous_beat = max(motion_first[ind_first][0], motion_second[ind_second][0])
 
-    contrapunctal_motion_values = {'Contrary': contrary_motion/total_nr_beats, 'Parallel': parallel_motion/total_nr_beats, 
-                    'Oblique': oblique_motion/total_nr_beats, 'Similar': similar_motion/total_nr_beats, 
-                    'Rest': rest_motion/total_nr_beats, 'One': one_motion/total_nr_beats}
+        # Double the beats that are in two separate parts
+        extra_beats += current_beat-previous_beat
+
+        # Update current_beat to be the end of the note ending first of the two current notes
+        current_beat = min(motion_first[ind_first][0] + motion_first[ind_first][1], motion_second[ind_second][0] + motion_second[ind_second][1])
+
+        
+    contrapunctal_motion_values = {'Contrary': contrary_motion/(total_nr_beats + extra_beats), 'Parallel': parallel_motion/(total_nr_beats + extra_beats), 
+                    'Oblique': oblique_motion/(total_nr_beats + extra_beats), 'Similar': similar_motion/(total_nr_beats + extra_beats), 
+                    'Rest': rest_motion/(total_nr_beats + extra_beats), 'One': one_motion/(total_nr_beats + extra_beats)}
+    
     return contrapunctal_motion_values
 
 # ---------------------------------------------
@@ -442,7 +452,9 @@ def motion_of_track(track):
         # If the note is a rest, end last motion and start a rest motion
         if note[-1] is None:
             if current_motion != 'Rest':
-                # Add the previous motion to the list
+                # Add the previous motion to the list. If None, set it to Same.
+                if current_motion is None:
+                    current_motion = 'Same'
                 motion.append([current_start, current_passage, current_motion])                
                 
                 # Start new upward motion
@@ -472,8 +484,8 @@ def motion_of_track(track):
                 motion.append([current_start, current_passage, current_motion])                
                 
                 # Start new upward motion
-                current_start += current_passage
-                current_passage = 1/note[1]
+                current_start += current_passage - 1/previous_note[1]
+                current_passage = 1/previous_note[1] + 1/note[1]
                 current_motion = 'Up'
         
         # Downward motion between this and previous note
@@ -488,8 +500,8 @@ def motion_of_track(track):
                 motion.append([current_start, current_passage, current_motion])                
                 
                 # Start new upward motion
-                current_start += current_passage
-                current_passage = 1/note[1]
+                current_start += current_passage - 1/previous_note[1]
+                current_passage = 1/previous_note[1] + 1/note[1]
                 current_motion = 'Down'
         
         # No motion between this and previous note
@@ -504,8 +516,8 @@ def motion_of_track(track):
                 motion.append([current_start, current_passage, current_motion])                
                 
                 # Start new upward motion
-                current_start += current_passage
-                current_passage = 1/note[1]
+                current_start += current_passage - 1/previous_note[1]
+                current_passage = 1/previous_note[1] + 1/note[1]
                 current_motion = 'Same'
         
         previous_note = note
@@ -515,11 +527,11 @@ def motion_of_track(track):
     return motion
  
 # ---------------------------------------------
-# check_percentage_parallell: 
+# check_parallell_and_similar: 
 # Help function that takes two tracks and a time span as input, and calculates how much of this part has similar and how much has parallel motion.
-# Return a dictionary with keys 'Parallel' and 'Similar' with their respective percentage.
+# Return a dictionary with keys 'Parallel' and 'Similar' with their respective number of beats having that motion. Also has a key 'Extra beats' with the number of overlapping beats.
 # ---------------------------------------------
-def check_percentage_parallell(first_voice, second_voice, start_beat, end_beat):
+def check_parallell_and_similar(first_voice, second_voice, start_beat, end_beat):
     
     if len(first_voice) == 0:
         print('Error occured')
@@ -527,22 +539,66 @@ def check_percentage_parallell(first_voice, second_voice, start_beat, end_beat):
 
     # Get all intervals in this part, including the interval before the one at start_beat.
     intervals, interval_lengths = get_all_intervals(first_voice, second_voice, start_beat, end_beat)
-    #breakpoint()
+    
     if len(intervals) == 1:
-        return {'Parallel': 0, 'Similar': 1}
+        return {'Parallel': 0, 'Similar': 0, 'Extra beats': 0}
+    
+    third_intervals = [3, 4]
+    second_intervals = [1, 2]
+    seventh_intervals = [10, 11]
+    
     parallel_time = 0
     similar_time = 0
     previous_interval = intervals[0]
+    previous_motion = None
+    current_pass = 0
+    extra_beats = 0
     for i in range(1,len(intervals)):
-        if intervals[i] == previous_interval:
-            parallel_time += interval_lengths[i]
+        # Check if minor of major third
+        third_repeated = False
+        if intervals[i] % 12 in third_intervals and previous_interval % 12 in third_intervals:
+            if intervals[i] // 12 == previous_interval //12:
+                third_repeated = True
+        # Check if second
+        second_repeated = False
+        if intervals[i] % 12 in second_intervals and previous_interval % 12 in second_intervals:
+            if intervals[i] // 12 == previous_interval //12:
+                second_repeated = True
+        # Check if seventh
+        seventh_repeated = False
+        if intervals[i] % 12 in seventh_intervals and previous_interval % 12 in seventh_intervals:
+            if intervals[i] // 12 == previous_interval //12:
+                seventh_repeated = True
+
+        
+        if intervals[i] == previous_interval or third_repeated or second_repeated or seventh_repeated:
+            if previous_motion == 'parallel':
+                current_pass += interval_lengths[i]
+            else:
+                if previous_motion == 'similar':
+                    similar_time += current_pass
+                    extra_beats += interval_lengths[i-1]
+                previous_motion = 'parallel'
+                current_pass = interval_lengths[i-1] + interval_lengths[i]
         else:
-            similar_time += interval_lengths[i]    
+            if previous_motion == 'similar':
+                current_pass += interval_lengths[i]
+            else:
+                if previous_motion == 'parallel':
+                    parallel_time += current_pass
+                    extra_beats += interval_lengths[i-1]
+                previous_motion = 'similar'
+                current_pass = interval_lengths[i-1] + interval_lengths[i]
+    if previous_motion == 'similar':
+        similar_time += current_pass
+    else:
+        parallel_time += current_pass
+
     if similar_time + parallel_time == 0:
         print(f"similar time: {similar_time}")
         print(f"parallel time: {parallel_time}")
         breakpoint()
-    return {'Parallel': parallel_time/(parallel_time + similar_time), 'Similar': similar_time/(parallel_time + similar_time)}
+    return {'Parallel': parallel_time, 'Similar': similar_time, 'Extra beats': extra_beats}
     
 # ---------------------------------------------
 # get_all_intervals: 
