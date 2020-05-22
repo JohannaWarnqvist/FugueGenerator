@@ -324,8 +324,8 @@ def generate_random_fugue(key, subject, nr_parts = 1):
  
 
 #Test for debugging
-test_track = Track_Functions.init_random_track("D",True)
+test_track = Track_Functions.init_random_track("C",True)
 #test_track = Track_Functions.init_preset_track('blinka')
-generate_random_fugue("D", test_track, 3)
+generate_random_fugue("C", test_track, 3)
 
 
