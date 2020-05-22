@@ -190,7 +190,7 @@ def generate_random_fugue(key, subject, nr_parts = 1):
     # Save bar 2 for later modulation
     bar_prev = first_voice[-1]
 
-    variants = ['Minor', 'Reverse']
+    variants = ['Minor', 'Reverse', 'Inverse']
     iParts = 0
     while iParts < nr_parts:
             rVariant = rnd.choice(variants)
@@ -212,10 +212,26 @@ def generate_random_fugue(key, subject, nr_parts = 1):
                 new_second_voice[0] = eg_harmony.best_individual[0]
 
             elif rVariant == 'Reverse':
-                # Genereate inverse development
+                # Genereate reverse development
                 
                 new_first_voice = Track_Functions.reverse(first_voice_first_part, key)
                 new_second_voice = Track_Functions.reverse(second_voice_first_part, key)
+                
+                bar_after = new_first_voice[0]
+
+                # Generate harmony in second voice first bar
+                eg_harmony = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'harmony', 
+                        input_melody = Track().add_bar(copy.deepcopy(new_first_voice[1])))
+
+                eg_harmony.run_evolution()
+                #breakpoint()
+                new_second_voice[1] = eg_harmony.best_individual[0]
+
+            elif rVariant == 'Inverse':
+                # Genereate inverse development
+                
+                new_first_voice = Track_Functions.inverse(first_voice_first_part)
+                new_second_voice = Track_Functions.inverse(second_voice_first_part)
                 
                 bar_after = new_first_voice[0]
 

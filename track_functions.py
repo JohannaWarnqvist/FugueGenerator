@@ -324,7 +324,7 @@ def reverse(track, key = 'C'):
 #TODO Add the right accidentals to the notes depending on the scale
 #returns a copied and inverted track of input track. Inverts around the starting note of the input track
 #--------------------------------------------------------------------
-def inverse(track, key):
+def inverse(track):
     # Copy value of reference to aviod problems with overwriting 
     inversed_track = copy.deepcopy(track)
     transposed = 0
@@ -335,8 +335,11 @@ def inverse(track, key):
     #note[-1][0] is a note
 
     #take out the first actual note from the "note" generator
-    start_note = next(input_notes)[-1][0]
-
+    tmp = next(input_notes)[-1]
+    while(tmp is None):
+        tmp = next(input_notes)[-1]
+    
+    start_note = tmp[0]
     #save the note name value without axidentals for camparison with the scale string
     base_note_value = start_note.name[0]
 
@@ -344,7 +347,10 @@ def inverse(track, key):
         transposed = intervals.measure(start_note.name[0].split("-")[0], "C")
         inversed_track = transpose_from_halfnote(inversed_track, transposed)
         input_notes = inversed_track.get_notes()
-        start_note = next(input_notes)[-1][0]
+        tmp = next(input_notes)[-1]
+        while(tmp is None):
+            tmp = next(input_notes)[-1]
+        start_note = tmp[0]
         base_note_value = start_note.name[0]
 
 
@@ -678,10 +684,3 @@ def ending(first_track, second_track, subject, key=r""):
     bar = Bar(key = key)
     bar.place_notes(cadence[3][2],1)
     second_track.add_bar(bar)
-
-
-#track_test = init_preset_track(2)
-track_test = init_random_track("E")
-add_tracks(track_test, inverse(track_test,"C"))    
-finished_fugue = LilyPond.from_Track(track_test)
-to_LilyPond_file(finished_fugue,"test_lp")
