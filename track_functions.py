@@ -13,6 +13,8 @@ import mingus.core.scales as scales
 import mingus.core.chords as chord
 import mingus.core.keys as keys
 import mingus.midi.midi_file_in as midi
+import mingus.extra.lilypond as LilyPond
+from Mingus_LilyPond_helper import to_LilyPond_file
 import copy
 import random
 
@@ -164,7 +166,7 @@ def init_preset_track(num):
         track + "G-5"
         track + "C-6"
     if num==2:
-        track + "C"
+        track + "E"
         track + "D"
         track + "E"
         track + "A-2"
@@ -322,9 +324,10 @@ def reverse(track, key = 'C'):
 #TODO Add the right accidentals to the notes depending on the scale
 #returns a copied and inverted track of input track. Inverts around the starting note of the input track
 #--------------------------------------------------------------------
-def inverse(track):
+def inverse(track, key):
     # Copy value of reference to aviod problems with overwriting 
     inversed_track = copy.deepcopy(track)
+    transposed = 0
 
     #"note" generator
     input_notes = inversed_track.get_notes()
@@ -336,6 +339,14 @@ def inverse(track):
 
     #save the note name value without axidentals for camparison with the scale string
     base_note_value = start_note.name[0]
+
+    if not (base_note_value == "C"):
+        transposed = intervals.measure(start_note.name[0].split("-")[0], "C")
+        inversed_track = transpose_from_halfnote(inversed_track, transposed)
+        input_notes = inversed_track.get_notes()
+        start_note = next(input_notes)[-1][0]
+        base_note_value = start_note.name[0]
+
 
     #create a string with the ordered notes from the cmaj scale starting from the note after 
     #the base_note_value until the base_note_value is read again. This is used to calculate the
@@ -375,10 +386,7 @@ def inverse(track):
                         note.octave = start_note.octave + (start_note.octave - note.octave - 1)
 
                 else:
-                    if note.name[0] == "C" or scale.index("C") == (6-diff):
-                        note.octave = start_note.octave + (start_note.octave - note.octave + 1)
-                    else:
-                        note.octave = start_note.octave + (start_note.octave - note.octave)
+                    print("something went wrong with inverse")
                 
                 #Use offset to assign the note the correct note value in C-maj
                 if not (note.name[0] == base_note_value):
@@ -387,10 +395,14 @@ def inverse(track):
                     note.name = base_note_value
                 
                 #TODO Add the right accidentals to the notes depending on the scale
-                
-                
+           
+    if not (transposed == 0):
+        inversed_track = transpose_from_halfnote(inversed_track, transposed, False)            
+    
     #return inversed track
-    return inversed_track       
+    return inversed_track  
+
+
 
 #--------------------------------------------------------------------
 #INIT RANDOM (1-BAR) TRACK
@@ -405,7 +417,7 @@ def inverse(track):
 #   - it can't generate any pauses
 #   - it only returns a single bar (useful for subjects but we might want to create longer random tracks ?)
 # ----------------------------------
-def init_random_track(key, is_subject):
+def init_random_track(key, is_subject = True):
     notes = keys.get_notes(key)
     bar = Bar(key = key)
     while bar.current_beat < 1 :
@@ -668,13 +680,8 @@ def ending(first_track, second_track, subject, key=r""):
     second_track.add_bar(bar)
 
 
-
-#----------------------------------
-# TODO
-#-----------------------------------
-
-
-#augumentation/diminition
-
-
-#ev. normalize notes to scale?
+#track_test = init_preset_track(2)
+track_test = init_random_track("E")
+add_tracks(track_test, inverse(track_test,"C"))    
+finished_fugue = LilyPond.from_Track(track_test)
+to_LilyPond_file(finished_fugue,"test_lp")

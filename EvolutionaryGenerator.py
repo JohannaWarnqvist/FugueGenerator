@@ -26,7 +26,7 @@ class EvolutionaryGenerator():
         self.to_key = to_key
         
         self.population_size = 100
-        self.nr_generations = 500
+        self.nr_generations = 50
         
         self.probability_rest = 0.05
         

@@ -7,8 +7,6 @@ fitness-functions:(Emilie)
 
 3. Slutmelodi
 
-4. (Emilie - in progress) Använda torbjörns ide om att använda redan existerande fugor för att avgöra vikter
-
 (Om vi har tid)
 Generera subject
 

@@ -11,7 +11,6 @@ import mingus.core.intervals as intervals
 import mingus.core.notes as notes
 import mingus.core.scales as scales
 import mingus.core.keys as keys
-import midi_test as midi
 import copy
 import random
 import track_functions as Track_Functions

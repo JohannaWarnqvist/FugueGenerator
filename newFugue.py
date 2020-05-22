@@ -224,7 +224,7 @@ def generate_random_fugue(key, subject, nr_parts = 1):
                         input_melody = Track().add_bar(copy.deepcopy(new_first_voice[1])))
 
                 eg_harmony.run_evolution()
-                breakpoint()
+                #breakpoint()
                 new_second_voice[1] = eg_harmony.best_individual[0]
                 
                 
