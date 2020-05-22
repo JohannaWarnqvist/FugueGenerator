@@ -31,7 +31,7 @@ check_parallell_and_similar(first_voice, second_voice,
     start_beat, end_beat)                                   Return dict with nr of beats of track having parallel and similar motion, and nr of beats with both.
 get_all_intervals(first_voice, second_voice, 
     start_beat = 0, end_beat = None)                        Return a list of two list, where the first contains all interval lengths in halvnote steps and the second list contains the duration of the interval in beats.
-check_consonant_percentage(track1, track2)                  Returns the percentage of the tracks that have consonant intervals.
+check_if_intervals_are_consonant_or_too_big(track1, track2) Returns list of the percentage of the tracks that have consonant intervals, and the percentage that have too big intervals.
 check_same_pattern(track1, track2)                          Returns the percentage of the tracks that have the same note duration pattern.
 count_fraction_of_good_melody_intervals(track)              Returns the percentage of good intervals in a melody
 check_note_durations(track)                                 Returns dict with number of notes of different accepted durations and the number of notes having other durations.
@@ -616,7 +616,7 @@ def get_all_intervals(first_voice, second_voice, start_beat = 0, end_beat = None
         breakpoint()
 
     if end_beat is None:
-        end_beat = min(first_voice.current_beat, second_voice.current_beat)
+        end_beat = min(len(first_voice), len(second_voice))
     
     
     # Get a generator for all notes in each track and skip to the notes at start_beat
@@ -691,60 +691,44 @@ def get_all_intervals(first_voice, second_voice, start_beat = 0, end_beat = None
 # Takes two tracks as input and calculate the percentage of the track beats where it is consonant intervals bewteen the two tracks.
 # Return a float with percentage.
 # ---------------------------------------------
-def check_consonant_percentage(track1, track2):
+def check_if_intervals_are_consonant_or_too_big(track1, track2):
+    
+    # Get all intervals and their lengths
+    intervals, interval_lengths = get_all_intervals(track1, track2)
     
     # Get a generator for all notes in each track and skip to the notes at start_beat
-    notes_first = track1.get_notes()
-    notes_second = track2.get_notes()
+    #notes_first = track1.get_notes()
+    #notes_second = track2.get_notes()
     
-    note_first = next(notes_first)
-    note_second = next(notes_second)
+    #note_first = next(notes_first)
+    #note_second = next(notes_second)
     
     consonant_total = 0
+    over_maximum_interval = 0
     # Check all intervals
-    beat = min(1/note_first[1], 1/note_first[1])
-    bar_nr = 0
-    previous_beat = 0
-    end_beat = len(track1)  #nr of bars
-    while bar_nr + beat < end_beat:
+    #beat = min(1/note_first[1], 1/note_first[1])
+    #bar_nr = 0
+    #previous_beat = 0
+    #end_beat = len(track1)  #nr of bars
     
-        if note_first[-1] is None or note_second[-1] is None:
-            current_interval_is_consonant = True
-        else:
-            # Check if consonant
-            current_interval_is_consonant = intervals.is_consonant(note_first[-1][0].name, note_second[-1][0].name, False)
-        
-        # Add the result if consonant
-        if current_interval_is_consonant:
-            consonant_total += (beat - previous_beat)
-
-        # Save beat as previous beat
-        previous_beat = beat
-        
-        # Update beat and current notes
-        if note_first[0]+1/note_first[1] <= note_second[0] + 1/note_second[1]:
-            beat = note_first[0] + 1/note_first[1]
-            if beat == 1.0:
-                bar_nr += 1
-            
-            if bar_nr == end_beat:
-                break
-
-            note_first = next(notes_first)
-            
-        if note_first[0] + 1/note_first[1] >= note_second[0] + 1/note_second[1]:
-            beat = note_second[0] + 1/note_second[1]
-            if beat == 1.0:
-                bar_nr += 1
-            
-            if bar_nr == end_beat:
-                break
-                
-            note_second = next(notes_second)
+    consonant_intervals = [0, 3, 4, 7, 8, 9]
     
+    for i in range(len(intervals)):
+        # If one of tracks is resting, continue
+        if intervals[i] is None:
+            continue
+            
+        if abs(intervals[i]) in consonant_intervals:
+            consonant_total += interval_lengths[i]
+        
+        elif abs(intervals[i]) > 16:
+            over_maximum_interval += interval_lengths[i]
+            
     consonant_rate = consonant_total/len(track1)
+    too_long_rate = over_maximum_interval/len(track1)
     
-    return consonant_rate
+    return [consonant_rate, too_long_rate]
+
 
 # ---------------------------------------------
 # check_same_pattern:

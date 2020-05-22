@@ -1,0 +1,2 @@
+\version "2.10.33"
+\header { title = "Untitled" composer = "" opus = "" } { { c'2 f'2 } { b'2. a'8. g'16 } { dis'2. r4 } { d'4. c'4 b4 c'8 } { a'2 d'2 } { g'2. f'8. e'16 } { c'8 \times 2/3 {c'1 }\times 1/1 {c'8 r8 }} { c'2 c'2 } { c'2 f'2 } { b'2 c'2 } { f'2 g'2 } { c'1 } } { { r1 } { g'2 c''2 } { a'8. a'8. a'8 r8 a'8 a'8 r8 } { ais'1 } { d'2 a'2 } { e'2 a''2 } { a'8. a'8. a'8 r8 a'8 a'8 r8 } { ais'1 } { r2 c'2 } { f'2 e'2 } { a'4 c'2 d'8 b'8 } { g'1 } }

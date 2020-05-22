@@ -161,15 +161,19 @@ def calculate_fitness_harmony(population, input_melody, key, counter = False):
         #Function that calculates fraction where 1 is best                          Bias:
                 
         #Rewards:
-        fitness += more_calc(frac_repeating_passage,                               default_bias) #Calculated previously
+        fitness += more_calc(frac_repeating_passage,                                default_bias) #Calculated previously
         (on_beat,on_half_beat) = measure.count_notes_on_beat(melody)
-        fitness += more_calc(on_beat,                                              default_bias)
-        fitness += more_calc(on_half_beat,                                         default_bias/2)
+        fitness += more_calc(on_beat,                                               default_bias)
+        fitness += more_calc(on_half_beat,                                          default_bias/2)
         # This one makes difference between Fb and E:
-        fitness += more_calc(measure.count_notes_in_scale(melody, key),           default_bias)
+        fitness += more_calc(measure.count_notes_in_scale(melody, key),             default_bias)
         
-        fitness += more_calc(measure.check_same_pattern(input_melody, melody),     default_bias)
-        fitness += more_calc(measure.check_consonant_percentage(input_melody, melody),   default_bias)
+        fitness += more_calc(measure.check_same_pattern(input_melody, melody),      default_bias)
+
+        # Check intervals, if consonant or too large
+        consonant, too_long = measure.check_if_intervals_are_consonant_or_too_big(input_melody, melody)
+        fitness += more_calc(consonant,                                             default_bias)
+        fitness -= more_calc(too_long,                                              default_bias)
         
         
         
@@ -180,21 +184,31 @@ def calculate_fitness_harmony(population, input_melody, key, counter = False):
         
         fitness += more_calc(- measure.count_tritone_or_seventh_in_two_skips(melody),default_bias)
         
-        # In progress:
-        
+               
         # Contrapunctal motion
         contrapunctal_motion_values = measure.contrapunctal_motion(input_melody, melody)
         fitness += more_calc(contrapunctal_motion_values['Contrary'],                default_bias)
+        
+        # If included, should add less than Contrary. Contrary is good, oblique and similar is okay.
         fitness += more_calc(contrapunctal_motion_values['Oblique'],                default_bias/4)
         fitness += more_calc(contrapunctal_motion_values['Similar'],                default_bias/4)
-
-        fitness -= more_calc(contrapunctal_motion_values['Parallel'],               default_bias/2)
-        fitness += more_calc(contrapunctal_motion_values['Rest'],                default_bias/4)
+        
+        # Having parallel motion or rest in both tracks is considered bad.
+        fitness -= more_calc(contrapunctal_motion_values['Parallel'],               default_bias)
+        fitness += more_calc(contrapunctal_motion_values['Rest'],                default_bias)
                
         # check_durations:
         # start of how to give points normalized over number of bars:
         #points = {16: 1/16, 8: 0.5, 16/3: 1/8, 4: 2, 8/3: 0.75, 2: 1, 4/3: 1, 1: 1}
-        points = {16: 1/32, 8: 1/8, 16/3: 3/32, 4: 1/4, 8/3: 1/4, 2: 1/2, 4/3: 2/4, 1: 1}
+        points = {16:   1/32, 
+                  8:    1/8, 
+                  16/3: 2/32, 
+                  4:    1/4, 
+                  8/3:  1/4, 
+                  2:    1/2, 
+                  4/3:  2/4, 
+                  1:    1}
+        
         accepted_durations = [16, 8, 16/3, 4, 8/3, 2, 4/3, 1]
         durations = measure.check_note_durations(melody)
         for iDur in accepted_durations:
