@@ -263,12 +263,19 @@ def transpose_to_relative_minor(track, original_key, harmonic):
             else:
                 #For every actual note in the note containers (important if there is a chord)
                 for note in nc:
+                    #old_note = copy.deepcopy(note)
                     if note.name in old_scale:
                         index = old_scale.index(note.name)
                         note.name = new_scale[index]
+
                     else:
                         note.transpose("b3")
                         note.name = notes.reduce_accidentals(note.name)
+                    
+                    # Fix octaves
+                    if note.name[0] == 'A' or note.name[0] == 'B':
+                        note.octave_down()
+
     else:
         print("input key is not major key")   
     return transposed_track
@@ -456,13 +463,15 @@ def init_random_track(key, is_subject = True):
 # up = true if you want to speed up, up = False if you want to slow down
 # factor determines how much to speed up / slow down if factor = 2 we will either dubbel of half the speed 
 #--------------------------------------------------------------------
-def change_speed(track, factor, up=True):
+def change_speed(track, factor, key, up=True):
     changed_track = Track()
     #if factor is 0 we return an empty track
     if (factor != 0.0) : 
 
         input_track = copy.deepcopy(track)
         input_notes = input_track.get_notes()
+        b = Bar(key = key)
+        changed_track.add_bar(b)
 
         #if we want to speed up (notespeed *= factor)
         if up:

@@ -50,7 +50,7 @@ def generate_fugue(key,subject):
     Track_Functions.add_tracks(second_voice,answer)
     
     # Generate countersubject
-    eg_counter = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'counter', input_melody = subject)
+    eg_counter = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'counter', input_melody = subject, nr_generations = counter_nr_generations)
     eg_counter.run_evolution()
     counter_subject = copy.deepcopy(eg_counter.best_individual)
     
@@ -69,7 +69,7 @@ def generate_fugue(key,subject):
     
     # Generate harmony in second voice in bar 5
     eg_harmony_minor = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'harmony', 
-            input_melody = Track().add_bar(copy.deepcopy(minor_first_voice[0])))
+            input_melody = Track().add_bar(copy.deepcopy(minor_first_voice[0])), nr_generations = harmony_nr_generations)
 
     eg_harmony_minor.run_evolution()
     
@@ -80,7 +80,7 @@ def generate_fugue(key,subject):
     minor_key += 'm'
 
     eg_modulate_to_minor = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'modulate', 
-            from_bar = bar_2, to_bar = bar_5, from_key = key, to_key = minor_key)
+            from_bar = bar_2, to_bar = bar_5, from_key = key, to_key = minor_key, nr_generations = modulate_nr_generations)
 
     eg_modulate_to_minor.run_evolution()
     modulate_first_voice = copy.deepcopy(eg_modulate_to_minor.best_individual)
@@ -88,7 +88,7 @@ def generate_fugue(key,subject):
     # Generate second voice as harmony to the first voice in bar 3 and 4
     
     eg_second_voice_modulate = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'harmony', 
-            input_melody = modulate_first_voice, from_key = 'C', to_key = 'Am')
+            input_melody = modulate_first_voice, from_key = 'C', to_key = 'Am', nr_generations = harmony_nr_generations)
     
     eg_second_voice_modulate.run_evolution()    
     modulate_second_voice = copy.deepcopy(eg_second_voice_modulate.best_individual)
@@ -117,7 +117,7 @@ def generate_fugue(key,subject):
     # Create modulation from minor to major in 7 and 8
     
     eg_modulate_to_major = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'modulate', 
-            from_bar = bar_6, to_bar = bar_9, from_key = 'Am', to_key = 'C')
+            from_bar = bar_6, to_bar = bar_9, from_key = 'Am', to_key = 'C', nr_generations = modulate_nr_generations)
 
     eg_modulate_to_major.run_evolution()
     modulate_back_first_voice = copy.deepcopy(eg_modulate_to_major.best_individual)
@@ -125,7 +125,7 @@ def generate_fugue(key,subject):
     # Generate second voice as harmony to the first voice in bar 7 and 8
     
     eg_second_voice_modulate_back = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'harmony', 
-            input_melody = modulate_first_voice, from_key = 'Am', to_key = 'C')
+            input_melody = modulate_first_voice, from_key = 'Am', to_key = 'C', nr_generations = harmony_nr_generations)
     
     eg_second_voice_modulate_back.run_evolution()    
     modulate_back_second_voice = copy.deepcopy(eg_second_voice_modulate.best_individual)
@@ -176,7 +176,7 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
     Track_Functions.add_tracks(second_voice,answer)
     
     # Generate countersubject
-    eg_counter = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'counter', input_melody = subject)
+    eg_counter = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'counter', input_melody = subject, nr_generations = counter_nr_generations)
     eg_counter.run_evolution()
     counter_subject = copy.deepcopy(eg_counter.best_individual)
     
@@ -213,7 +213,7 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
             
                 # Generate harmony in second voice first bar
                 eg_harmony = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'harmony', 
-                        input_melody = Track().add_bar(copy.deepcopy(new_first_voice[0])))
+                        input_melody = Track().add_bar(copy.deepcopy(new_first_voice[0])), nr_generations = harmony_nr_generations)
 
                 eg_harmony.run_evolution()
                 
@@ -229,7 +229,7 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
 
                 # Generate harmony in second voice first bar
                 eg_harmony = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'harmony', 
-                        input_melody = Track().add_bar(copy.deepcopy(new_first_voice[1])))
+                        input_melody = Track().add_bar(copy.deepcopy(new_first_voice[1])), nr_generations = harmony_nr_generations)
 
                 eg_harmony.run_evolution()
                 #breakpoint()
@@ -245,7 +245,7 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
 
                 # Generate harmony in second voice first bar
                 eg_harmony = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'harmony', 
-                        input_melody = Track().add_bar(copy.deepcopy(new_first_voice[0])))
+                        input_melody = Track().add_bar(copy.deepcopy(new_first_voice[0])), nr_generations = harmony_nr_generations)
 
                 eg_harmony.run_evolution()
                 #breakpoint()
@@ -256,7 +256,7 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
             # Generate the two bars linking this new part to the previous parts
 
             eg_modulate = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'modulate', 
-                    from_bar = bar_prev, to_bar = bar_after)
+                    from_bar = bar_prev, to_bar = bar_after, nr_generations = modulate_nr_generations)
 
             eg_modulate.run_evolution()
             modulate_first_voice = copy.deepcopy(eg_modulate.best_individual)
@@ -264,7 +264,7 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
             # Generate second voice as harmony to this linking part
             
             eg_second_voice_modulate = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'harmony', 
-                    input_melody = modulate_first_voice)
+                    input_melody = modulate_first_voice, nr_generations = harmony_nr_generations)
             
             eg_second_voice_modulate.run_evolution()    
             modulate_second_voice = copy.deepcopy(eg_second_voice_modulate.best_individual)
@@ -296,7 +296,7 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
     # Create modulation from minor to major in 7 and 8
     
     eg_modulate_to_major = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'modulate', 
-            from_bar = bar_prev, to_bar = bar_after)
+            from_bar = bar_prev, to_bar = bar_after, nr_generations = modulate_nr_generations)
 
     eg_modulate_to_major.run_evolution()
     modulate_back_first_voice = copy.deepcopy(eg_modulate_to_major.best_individual)
@@ -304,7 +304,7 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
     # Generate second voice as harmony to the first voice in bar 7 and 8
     
     eg_second_voice_modulate_back = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'harmony', 
-            input_melody = modulate_first_voice)
+            input_melody = modulate_first_voice, nr_generations = harmony_nr_generations)
     
     eg_second_voice_modulate_back.run_evolution()    
     modulate_back_second_voice = copy.deepcopy(eg_second_voice_modulate.best_individual)
@@ -329,12 +329,18 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
 
     #Generate MIDI output for fugue named final_fugue
     midi_file_out.write_Composition("final_fugue.mid", fugue) 
- 
 
-#Test for debugging
+ 
+# Set number of generations to use for different types of generators
+harmony_nr_generations = 500
+modulate_nr_generations = 100
+counter_nr_generations = 500
+
+# Test for debugging
 test_track = Track_Functions.init_random_track("C", True)
 #test_track = Track_Functions.init_preset_track('blinka')
-#generate_random_fugue("D", test_track, 3)
+#generate_random_fugue("D", test_track, 1)
 generate_random_fugue('C', test_track, 3, ['Minor', 'Inverse', 'Reverse'])
+
 
 

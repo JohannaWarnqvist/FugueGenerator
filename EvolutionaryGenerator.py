@@ -10,7 +10,7 @@ import fitness_functions as Fitness_Functions
 class EvolutionaryGenerator():
 
     def __init__(self, key, nr_bars = 2, fitness_function = 'C', global_max = None, input_melody = None, 
-            from_bar = None, to_bar = None, from_key = None, to_key = None, wildness = False):
+            from_bar = None, to_bar = None, from_key = None, to_key = None, wildness = False, nr_generations = 500):
         "Initialize all the parameters"
         
         # When testing to regenerate same case:
@@ -26,7 +26,7 @@ class EvolutionaryGenerator():
         self.to_key = to_key
         
         self.population_size = 100
-        self.nr_generations = 50
+        self.nr_generations = nr_generations
         
         self.probability_rest = 0.05
         
