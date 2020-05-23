@@ -28,8 +28,8 @@ accepted_durations = [16, 8, 16/3, 4, 8/3, 2, 4/3, 1]
 #VARIABLES TO CHANGE: These are the "perfect" values
 #frac = fraction/percentage of ...., nmb = number of...., rep = repetitions
 frac_repeating_note_length = 0.3   
-nmb_chords_between_tracks = 5.0
-nmb_note_length_clusters = 6.0
+nmb_chords_between_tracks = 4.0
+nmb_note_length_clusters = 4.0
 nmb_of_passage_rep = 1.0
 len_of_passage_rep = 3.0
 frac_same_pattern = 0.8
@@ -136,7 +136,7 @@ def calculate_fitness_modulate(population, from_bar, to_bar, from_key, to_key, i
             # check_durations:
             durations = measure.check_note_durations(melody)
             for iDur in accepted_durations:
-                fitness += more_calc(durations[iDur],     points[iDur])
+                fitness += more_calc(durations[iDur],     points[iDur] *                default_bias)
 
             #Add resulting fitness value to list
             fitness_values[iPop] = fitness
@@ -209,12 +209,12 @@ def calculate_fitness_harmony(population, input_melody, key, counter = False):
         
         # Having parallel motion or rest in both tracks is considered bad.
         fitness -= more_calc(contrapunctal_motion_values['Parallel'],               default_bias)
-        fitness += more_calc(contrapunctal_motion_values['Rest'],                default_bias)
+        fitness += more_calc(contrapunctal_motion_values['Rest'],                   default_bias)
                
         # check_durations:
         durations = measure.check_note_durations(melody)
         for iDur in accepted_durations:
-            fitness += more_calc(durations[iDur],     points[iDur])
+            fitness += more_calc(durations[iDur],     points[iDur]                  * default_bias)
 
         #Add resulting fitness value to list
         fitness_values[iPop] = fitness      
