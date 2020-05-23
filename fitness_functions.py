@@ -15,13 +15,13 @@ import track_functions as Track_Functions
 # start of how to give points normalized over number of bars:
 #points = {16: 1/16, 8: 0.5, 16/3: 1/8, 4: 2, 8/3: 0.75, 2: 1, 4/3: 1, 1: 1}
 points = {16:   1/32, 
-          8:    1/8, 
+          8:    1/4, 
           16/3: 2/32, 
-          4:    1/4, 
+          4:    1, 
           8/3:  1/4, 
-          2:    1/2, 
+          2:    1, 
           4/3:  2/4, 
-          1:    1}
+          1:    1/2}
         
 accepted_durations = [16, 8, 16/3, 4, 8/3, 2, 4/3, 1]
 
@@ -195,8 +195,8 @@ def calculate_fitness_harmony(population, input_melody, key, counter = False):
         fitness -= more_calc(too_long,                                              default_bias)
 
         # Make difference on E and Fb and similar:
-        fitness += more_calc(- measure.repeating_note_pitch(melody,True),           default_bias)
-        fitness += more_calc(- measure.count_tritone_or_seventh_in_two_skips(melody),default_bias)
+        fitness -= more_calc(measure.repeating_note_pitch(melody,True),           default_bias)
+        fitness -= more_calc(measure.count_tritone_or_seventh_in_two_skips(melody),default_bias)
         
                
         # Contrapunctal motion
@@ -209,7 +209,7 @@ def calculate_fitness_harmony(population, input_melody, key, counter = False):
         
         # Having parallel motion or rest in both tracks is considered bad.
         fitness -= more_calc(contrapunctal_motion_values['Parallel'],               default_bias)
-        fitness += more_calc(contrapunctal_motion_values['Rest'],                   default_bias)
+        fitness -= more_calc(contrapunctal_motion_values['Rest'],                   default_bias)
                
         # check_durations:
         durations = measure.check_note_durations(melody)
