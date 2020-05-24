@@ -769,18 +769,18 @@ def check_same_pattern(track1, track2):
     return same_duration_percentage
 
 # ------------------------------------------
-# count_fraction_of_good_melody_intervals: 
+# check_melody_intervals: 
 # Checks what fraction of a melody that use 'good' intervals: No big jumps or dissonant intervals allowed,
 # according to #2 in this list https://en.wikipedia.org/wiki/Counterpoint#Considerations_for_all_species
 #
 # Does not take tonality into account! Could be extended if needed. 
 # ------------------------------------------
-def count_fraction_of_good_melody_intervals(track):
+def check_melody_intervals(track):
     # The melody we test is the track melody without pauses. It will work if the melody has multiple pitches
     # in the same noteContainer, but it uses the first note in each container. A way to make it smarter would
     # be to use the highest pitch, but I don't think that's necessary for now
     melody = [note[2][0] for note in track.get_notes() if note[2]]
-    good_intervals = [0,1,2,3,4,5,7,12]      
+    good_intervals = [0,1,2,3,4,5,7,12]
     
     # count number of good intervals 
     nmb = 0
@@ -801,70 +801,80 @@ def count_fraction_of_good_melody_intervals(track):
     return nmb / (len(melody)-1)
 
 # ---------------------------------
-#   test_skips_and_steps_of_melody. IN PROGRESS - the points are 'off'
+#   check_motion_of_melody
 #   counts skips/steps that are good according to counterpoint rules. a friend to the above function
-#   count_fraction_of_good_melody_intervals, but this considers the general motion instead of definite intervals
+#   check_melody_intervals, but this considers the general motion instead of definite intervals
 #
 #   notes & limitations: 
-#       - skips only get points if they're followed by a good skip, so skips at the end of the melody never gets any points
 #       - doesn't consider disonances in two steps (this is handled by count_tritone_or_seventh...)
 #       - only looks at the general motion of the melody, not if the intervals sound good 
-#       (is partly handled by count_fraction_of_good_melody_intervals)
+#       (is partly handled by check_melody_intervals)
 #       - the names of these functions could be better/clearer 
 #  ---------------------------------
-
-def test_skips_and_steps_of_melody(track):
+def check_motion_of_melody(track):
     melody = [note[2][0] for note in track.get_notes() if note[2]]    
-    two_skips_warning = 0
-    last_direction = 0
+    
+    # Bool that makes sure all intervals are considered once
+    skip_next_iteration = False
+
+    # Variable to keep track on if the last two skips are in the same direction (and what direction)
+    last_two_skips_dir = 0
+
     good = 0
-    ok = 0
     for i in range(len(melody)-1):
+        if skip_next_iteration:             # This happens if the interval already is counted 
+            skip_next_iteration = False
+            continue 
+
         note1 = Note(melody[i])
         note2 = Note(melody[i+1])
         interval = note1.measure(note2)
-        
-        if interval == 0:
-            good += 1
-            two_skips_warning = 0
-            continue
-        
-        if abs(interval) <= 2:      # Steps are always good. 
-            good += 1
-            two_skips_warning = 0
-            continue
-        
-        if abs(interval) > 2:         # Skips are good depending on circumstances:    
-            if i+2 >= len(melody):
-                good += 1
-                two_skips_warning = 0
-                continue
 
-            note3 = Note(melody[i+2])
-            next_interval = note2.measure(note3)
-        
-            # (Handle the 0 case before the division below)
-            if next_interval == 0:  
-                good += 1
-                two_skips_warning = 0
-                continue
-
-            direction = interval / abs(interval)    # -1 if downward motion, 1 if upward
-            if direction != next_interval/abs(next_interval): 
-                good += 1   
-                two_skips_warning = 0                       # If next skip/step is opposite direction
-            elif abs(next_interval) < abs(interval):        # If next skip is in the same direction but smaller
-                if two_skips_warning == direction:
-                    continue
-                ok += 1
-                two_skips_warning = direction
+        # Steps are always good        
+        if abs(interval) <= 2:
+            good += 1
+            last_two_skips_dir = 0      # Reset two skip counter 
+            continue
     
-    # this could be altered depending on how good we consider two skips in the same direcion 
-    total_score = (good + ok) / (len(melody)-1)
-    #total_score = (good + ok/2) / (len(melody)-1)
-    return total_score
+        # Else, skips are good/bad depending on circumstances:             
+        direction = interval / abs(interval)            # -1 if downward motion, 1 if upward
+            
+        # Bad, continue: Skip is in the same direction as previous two
+        if direction == last_two_skips_dir:
+            continue
+        else:
+            last_two_skips_dir = 0  # reset counter
 
+        # Good: Skip is last interval of melody. 
+        if i+2 >= len(melody):
+            good += 1
+            continue
 
+        # At this point, there is not enough info to determine if the interval is good 
+        # without looking at the next one            
+        # --------- From here on we consider two intervals at a time ! ----------------
+        skip_next_iteration = True      # So that the new interval is only counted once
+        note3 = Note(melody[i+2])
+        next_interval = note2.measure(note3)
+
+        # Good : Skip - step
+        if abs(next_interval) <= 2:
+            good += 2
+            continue
+
+        # Good: Skip - Skip (in opposite directions)
+        if direction != next_interval/abs(next_interval): 
+            good += 2
+            last_two_skips_dir = 0
+        # Good: Skip - Skip (in same direction, if second skip is smaller than first)
+        elif abs(next_interval) < abs(interval): 
+            good += 2
+            last_two_skips_dir = direction   # Save direction as warning 
+        else:
+            last_two_skips_dir = direction   # Save direction as warning
+
+    frac_of_good_motion = good / (len(melody)-1)
+    return frac_of_good_motion
 
 # ---------------------------------------------
 # check_note_durations:
