@@ -534,6 +534,8 @@ def create_answer(track, key):
     
     track_copy = copy.deepcopy(track)
     for i in range(len(track_copy[0])-1):
+        if track_copy[0][i][2] is None:
+            continue
         note1 = track_copy[0][i][2][0].name      # This monstrosity is the note name
         if note1 == key:                    
             note2 = track_copy[0][i+1][2][0].name
@@ -543,7 +545,6 @@ def create_answer(track, key):
 
     answer = transpose_from_halfnote(track_copy,7,up=True)    
     return answer
-
 
 # -------------------------------------------------------
 # PITCH_AT_GIVEN_BEAT
