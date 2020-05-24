@@ -773,7 +773,8 @@ def check_same_pattern(track1, track2):
 # Checks what fraction of a melody that use 'good' intervals: No big jumps or dissonant intervals allowed,
 # according to #2 in this list https://en.wikipedia.org/wiki/Counterpoint#Considerations_for_all_species
 #
-# Does not take tonality into account! Could be extended if needed. 
+# Notes: Does not take tonality into account. If there are one or zero notes in the melody, it returns 0.
+# This might not be the best way to handle it (?) 
 # ------------------------------------------
 def check_melody_intervals(track):
     # The melody we test is the track melody without pauses. It will work if the melody has multiple pitches
@@ -781,6 +782,9 @@ def check_melody_intervals(track):
     # be to use the highest pitch, but I don't think that's necessary for now
     melody = [note[2][0] for note in track.get_notes() if note[2]]
     good_intervals = [0,1,2,3,4,5,7,12]
+    
+    if len(melody) <= 1:
+        return  
     
     # count number of good intervals 
     nmb = 0
@@ -813,6 +817,9 @@ def check_melody_intervals(track):
 #  ---------------------------------
 def check_motion_of_melody(track):
     melody = [note[2][0] for note in track.get_notes() if note[2]]    
+    
+    if len(melody) <= 1
+        return 0
     
     # Bool that makes sure all intervals are considered once
     skip_next_iteration = False
