@@ -773,8 +773,7 @@ def check_same_pattern(track1, track2):
 # Checks what fraction of a melody that use 'good' intervals: No big jumps or dissonant intervals allowed,
 # according to #2 in this list https://en.wikipedia.org/wiki/Counterpoint#Considerations_for_all_species
 #
-# Notes: Does not take tonality into account. If there are one or zero notes in the melody, it returns 0.
-# This might not be the best way to handle it (?) 
+# Does not take tonality into account! Could be extended if needed. 
 # ------------------------------------------
 def check_melody_intervals(track):
     # The melody we test is the track melody without pauses. It will work if the melody has multiple pitches
@@ -782,9 +781,9 @@ def check_melody_intervals(track):
     # be to use the highest pitch, but I don't think that's necessary for now
     melody = [note[2][0] for note in track.get_notes() if note[2]]
     good_intervals = [0,1,2,3,4,5,7,12]
-    
+
     if len(melody) <= 1:
-        return  
+        return 0
     
     # count number of good intervals 
     nmb = 0
@@ -818,7 +817,7 @@ def check_melody_intervals(track):
 def check_motion_of_melody(track):
     melody = [note[2][0] for note in track.get_notes() if note[2]]    
     
-    if len(melody) <= 1
+    if len(melody) <= 1:
         return 0
     
     # Bool that makes sure all intervals are considered once
@@ -843,7 +842,7 @@ def check_motion_of_melody(track):
             last_two_skips_dir = 0      # Reset two skip counter 
             continue
     
-        # Else, skips are good/bad depending on circumstances:             
+        # Skips are good depending on circumstances:             
         direction = interval / abs(interval)            # -1 if downward motion, 1 if upward
             
         # Bad, continue: Skip is in the same direction as previous two
@@ -852,7 +851,7 @@ def check_motion_of_melody(track):
         else:
             last_two_skips_dir = 0  # reset counter
 
-        # Good: Skip is last interval of melody. 
+        # Good: Skip is last interval of melody
         if i+2 >= len(melody):
             good += 1
             continue
@@ -882,7 +881,6 @@ def check_motion_of_melody(track):
 
     frac_of_good_motion = good / (len(melody)-1)
     return frac_of_good_motion
-
 # ---------------------------------------------
 # check_note_durations:
 # Check the duration of all notes.
