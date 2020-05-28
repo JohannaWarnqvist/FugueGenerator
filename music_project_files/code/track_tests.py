@@ -39,7 +39,7 @@ check_note_durations(track)                                 Returns dict with nu
 #--------------------------------------------------------------------
 # repeating_note_length:
 # Calculates a fraction between the nmb of notes and the most occuring note length and returns it
-# Ex. If 60% of the notes are quarter notes the function will reeturn 0.6
+# Ex. If 60% of the notes are quarter notes the function will return 0.6
 #--------------------------------------------------------------------
 def repeating_note_length(track):
     note_generetor = copy.deepcopy(track).get_notes()
