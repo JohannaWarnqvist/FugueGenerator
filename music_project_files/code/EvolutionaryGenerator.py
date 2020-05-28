@@ -50,7 +50,7 @@ class EvolutionaryGenerator():
         
         self.wildness = wildness
         
-        # Deciding here which note lengths that are allowed. Maybe should be done somewhere else?
+        # Deciding here which note lengths that are allowed
         self.possible_lengths = [16, 8, 16/3, 4, 8/3, 2, 4/3, 1]
 
     def test_population(self):
@@ -93,9 +93,9 @@ class EvolutionaryGenerator():
             
             # Print best individual and its fitness value if better than before
             if fitness_values[best_individual_index] > self.max_fitness_value:
-                #print(f"Generation: {iGen}")
-                #print(f"Best individual: {self.best_individual}")
-                #print(f"Fitness: {fitness_values[best_individual_index]}")
+                print(f"Generation: {iGen}")
+                print(f"Best individual: {self.best_individual}")
+                print(f"Maximal fitness: {fitness_values[best_individual_index]}")
                 self.max_fitness_value = fitness_values[best_individual_index]
                 if self.max_fitness_value == self.global_max:
                     break
@@ -161,7 +161,6 @@ class EvolutionaryGenerator():
             for i in range(self.nr_bars):
                 bar = Bar(self.key, meter)
                 while not bar.is_full():
-                    #breakpoint()
                     # Decide length of a note. Maximum length is what is left of this bar.
                     length_left = 1 - bar.current_beat
                     
@@ -412,14 +411,12 @@ class EvolutionaryGenerator():
                 
                     continue
             
-            
             # If the previous note is partly covered by previous note, add the not covered part
             if note_beat < current_beat and note_beat != current_beat % 1:
                 new_note_duration = 1/(note_beat + 1/note_duration - current_beat)
                 mutated_chromosome.add_notes(note_pitch, duration = new_note_duration)
                 current_beat += 1/new_note_duration
                 continue
-
             
             # If not affected by mutations on previous notes, check if this one should be mutated
                 
@@ -468,7 +465,6 @@ class EvolutionaryGenerator():
                         
         if len(mutated_chromosome) != self.nr_bars:
             # Some error must have occured
-            breakpoint()
             raise ValueError('Number of bars has decreased.')
         
         return mutated_chromosome
@@ -542,15 +538,14 @@ class EvolutionaryGenerator():
             fitness_values = Fitness_Functions.calculate_fitness_C(population)
             self.global_max = 2
         elif self.fitness_function == 'pauses':
-            fitness_values = Fitness_Functions.calculate_fitness_pauses(population)
+            fitness_values = Fitness_Functions.calculate_fitness_rests(population)
         elif self.fitness_function == 'counter':
             fitness_values = Fitness_Functions.calculate_fitness_harmony(population, self.input_melody, self.key)
         elif self.fitness_function == 'modulate':
             fitness_values = Fitness_Functions.calculate_fitness_modulate(population, self.from_bar, self.to_bar, self.from_key, self.to_key)
         elif self.fitness_function == 'harmony':
             if len(self.input_melody) == 0:
-                print('Error occured')
-                breakpoint()
+                raise ValueError('Input is empty')
 
             fitness_values = Fitness_Functions.calculate_fitness_harmony(self.population, self.input_melody, self.key)
         elif self.fitness_function == 'test':
@@ -569,6 +564,8 @@ class EvolutionaryGenerator():
         return tmp_population
     
     def correct_accidentals(self, pitch):
+        "Change the note name to be as simple as possible"
+
         pitch.remove_redundant_accidentals()
         ind = 0
         while len(pitch.name) > 2:

@@ -1,5 +1,5 @@
 #---------------------------------------------
-#In this file we create different functions that modify Tracks that can later be used to 
+# In this file we create different functions that modify Tracks that can later be used to 
 # modify subject in main 
 #---------------------------------------------
 
@@ -18,9 +18,6 @@ from Mingus_LilyPond_helper import to_LilyPond_file
 import copy
 import random
 
-"""FUNCTION INDEX                                           (to be able to find functions easier)
-interval_at_beat(track1,track2,beat)                        Returns the interval between two tracks on a given beat.
-"""
 
 #--------------------------------------------------------------------
 #HELPER FUNCTIONS FOR TRACK OPERATIONS 
@@ -142,8 +139,6 @@ def input_midi(midi_file):
     print(midi.MIDI_to_Composition(midi_file))
     return track
 
-#with open('final_fugue.mid', 'r') as f:
-#    input_midi(f)
 
 #--------------------------------------------------------------------
 #INIT PRESETS
@@ -272,8 +267,6 @@ def transpose_from_halfnote(track,nmb_of_halfnotes,up = True):
     # Return transposed track
     return transposed_track
 
-# A start to a function to use in bar 5 and 6. Does not yet actually do anything.
-# When done, it should be able to transpose a melody from C major to A minor
 
 def transpose_to_relative_minor(track, original_key, harmonic):
     transposed_track = copy.deepcopy(track)
@@ -316,7 +309,6 @@ def transpose_to_relative_minor(track, original_key, harmonic):
         print("input key is not major key")   
     return transposed_track
 
-#TEST for Transpose to relative minor 
 
 def transpose(track, interval, up):
     "Return a copy of the track, transposed the given interval up if up = True, otherwise down."
@@ -338,7 +330,6 @@ def transpose(track, interval, up):
     return transposed_track
 
 
-      
 #--------------------------------------------------------------------
 #REVERSE DONE
 #Returns an copied and reversed track of input track
@@ -452,7 +443,6 @@ def inverse(track):
     return inversed_track  
 
 
-
 #--------------------------------------------------------------------
 #INIT RANDOM (1-BAR) TRACK
 # Can be used to initalize a random subject, if is_subject is set to True. This gives a random bar that
@@ -523,7 +513,7 @@ def change_speed(track, factor, key, up=True):
     return changed_track    
 
 #--------------------------------------------------------------------
-# SHIF DONE
+# SHIFT DONE
 # Shifts a track for the pause duration and returns a copied and shifted track
 # Used for canon
 #--------------------------------------------------------------------
@@ -570,6 +560,8 @@ def create_answer(track, key):
     
     track_copy = copy.deepcopy(track)
     for i in range(len(track_copy[0])-1):
+        if track_copy[0][i][2] is None:
+            continue
         note1 = track_copy[0][i][2][0].name      # This monstrosity is the note name
         if note1 == key:                    
             note2 = track_copy[0][i+1][2][0].name
