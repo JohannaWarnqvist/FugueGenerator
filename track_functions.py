@@ -1,5 +1,5 @@
 #---------------------------------------------
-#In this file we create different functions that modify Tracks that can later be used to 
+# In this file we create different functions that modify Tracks that can later be used to 
 # modify subject in main 
 #---------------------------------------------
 
@@ -18,9 +18,6 @@ from Mingus_LilyPond_helper import to_LilyPond_file
 import copy
 import random
 
-"""FUNCTION INDEX                                           (to be able to find functions easier)
-interval_at_beat(track1,track2,beat)                        Returns the interval between two tracks on a given beat.
-"""
 
 #--------------------------------------------------------------------
 #HELPER FUNCTIONS FOR TRACK OPERATIONS 
@@ -142,8 +139,6 @@ def input_midi(midi_file):
     print(midi.MIDI_to_Composition(midi_file))
     return track
 
-#with open('final_fugue.mid', 'r') as f:
-#    input_midi(f)
 
 #--------------------------------------------------------------------
 #INIT PRESETS
@@ -191,6 +186,42 @@ def init_preset_track(num):
         bar.place_notes('A-4', 8)
         bar.place_notes('G-4', 4)
         track.add_bar(bar)
+
+    if num == "nokia": #scale A
+        track.add_notes('E-4', 16)
+        track.add_notes('D-4', 16)
+        track.add_notes('F#-3', 8)
+        track.add_notes('G#-3', 8)
+        track.add_notes('C#-4', 16)
+        track.add_notes('B-3', 16)
+
+        track.add_notes('D-3', 8)
+        track.add_notes('E-3', 8)
+        track.add_notes('B-3', 16)
+        track.add_notes('A-3', 16)
+        track.add_notes('A-3', 8)
+
+    if num == "windows": #scale C#
+        track.add_notes('D#-5', 4)
+        track.add_notes('A#-4', 8)
+        track.add_notes('G#-4', 4)
+        track.add_notes('D#-5', 8)
+        track.add_notes(['A#-3', 'D#-4', 'A#-4'], 4)   
+
+    if num == "brick": #scale C
+        track.add_notes('E-4', 4)
+        track.add_notes('B-3', 8)
+        track.add_notes('C-4', 8)
+        track.add_notes('D-4', 4)
+        track.add_notes('C-4', 8)
+        track.add_notes('B-3', 8)
+
+
+    if num == "panther": #Scale E
+        track.add_notes('D#-4', 8)
+        track.add_notes('E-4', 8/3)
+        track.add_notes('F#-4', 8)
+        track.add_notes('G-4', 8/3)
     return track
 
 # Helper function
@@ -236,8 +267,6 @@ def transpose_from_halfnote(track,nmb_of_halfnotes,up = True):
     # Return transposed track
     return transposed_track
 
-# A start to a function to use in bar 5 and 6. Does not yet actually do anything.
-# When done, it should be able to transpose a melody from C major to A minor
 
 def transpose_to_relative_minor(track, original_key, harmonic):
     transposed_track = copy.deepcopy(track)
@@ -280,7 +309,6 @@ def transpose_to_relative_minor(track, original_key, harmonic):
         print("input key is not major key")   
     return transposed_track
 
-#TEST for Transpose to relative minor 
 
 def transpose(track, interval, up):
     "Return a copy of the track, transposed the given interval up if up = True, otherwise down."
@@ -302,7 +330,6 @@ def transpose(track, interval, up):
     return transposed_track
 
 
-      
 #--------------------------------------------------------------------
 #REVERSE DONE
 #Returns an copied and reversed track of input track
@@ -416,7 +443,6 @@ def inverse(track):
     return inversed_track  
 
 
-
 #--------------------------------------------------------------------
 #INIT RANDOM (1-BAR) TRACK
 # Can be used to initalize a random subject, if is_subject is set to True. This gives a random bar that
@@ -487,7 +513,7 @@ def change_speed(track, factor, key, up=True):
     return changed_track    
 
 #--------------------------------------------------------------------
-# SHIF DONE
+# SHIFT DONE
 # Shifts a track for the pause duration and returns a copied and shifted track
 # Used for canon
 #--------------------------------------------------------------------
@@ -545,6 +571,7 @@ def create_answer(track, key):
 
     answer = transpose_from_halfnote(track_copy,7,up=True)    
     return answer
+
 
 # -------------------------------------------------------
 # PITCH_AT_GIVEN_BEAT

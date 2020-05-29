@@ -142,9 +142,9 @@ class EvolutionaryGenerator():
         
         # Print best individual and its fitness value if better than before
         if fitness_values[best_individual_index] > self.max_fitness_value:
-            #print(f"Generation: {iGen}")
-            #print(f"Best individual: {self.best_individual}")
-            #print(f"Fitness: {fitness_values[best_individual_index]}")
+            print(f"Generation: {iGen}")
+            print(f"Best individual: {self.best_individual}")
+            print(f"Maximal fitness: {fitness_values[best_individual_index]}")
             self.max_fitness_value = fitness_values[best_individual_index]
     
     def initialize_population(self, meter = (4,4), min_pitch = -12, max_pitch = 24):

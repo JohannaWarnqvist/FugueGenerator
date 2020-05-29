@@ -24,12 +24,12 @@ repeating_passages(track, (optional bool with_duration))    Returns (average_nm_
 count_notes_on_beat(track)                                  Calculates how many notes that are on a beat of its own duration beats, or if it is in the middle of two such beats.
 count_notes_in_scale(track)                                 Counts the number of notes in the track that is in the correct scale.
 count_tritone_or_seventh_in_two_skips(track)                Returns the number of tritones or sevenths in two skips in a one-voice track.
-contrapunctal_motion(track)                                 Returns dict with percentage of different contrapunctal motions used.
-motion_of_track(track)                                      Return list of which motions are in which part of track (Up, Down or Same).
+contrapuntal_motion(track)                                  Returns dict with percentage of different contrapuntal motions used.
+motion_of_track(track)                                      Returns list of which motions are in which part of track (Up, Down or Same).
 check_parallell_and_similar(first_voice, second_voice, 
-    start_beat, end_beat)                                   Return dict with nr of beats of track having parallel and similar motion, and nr of beats with both.
+    start_beat, end_beat)                                   Returns dict with nr of beats of track having parallel and similar motion, and nr of beats with both.
 get_all_intervals(first_voice, second_voice, 
-    start_beat = 0, end_beat = None)                        Return a list of two list, where the first contains all interval lengths in halvnote steps and the second list contains the duration of the interval in beats.
+    start_beat = 0, end_beat = None)                        Returns a list of two list, where the first contains all interval lengths in halvnote steps and the second list contains the duration of the interval in beats.
 check_if_intervals_are_consonant_or_too_big(track1, track2) Returns list of the percentage of the tracks that have consonant intervals, and the percentage that have too big intervals.
 check_same_pattern(track1, track2)                          Returns the percentage of the tracks that have the same note duration pattern.
 count_fraction_of_good_melody_intervals(track)              Returns the percentage of good intervals in a melody
@@ -39,7 +39,7 @@ check_note_durations(track)                                 Returns dict with nu
 #--------------------------------------------------------------------
 # repeating_note_length:
 # Calculates a fraction between the nmb of notes and the most occuring note length and returns it
-# Ex. If 60% of the notes are quarter notes the function will reeturn 0.6
+# Ex. If 60% of the notes are quarter notes the function will return 0.6
 #--------------------------------------------------------------------
 def repeating_note_length(track):
     note_generetor = copy.deepcopy(track).get_notes()
@@ -308,13 +308,13 @@ def count_tritone_or_seventh_in_two_skips(track, return_index = False):
     return nmb
 
 # ---------------------------------------------
-# contrapunctal_motion: 
-# Measure what contrapunctal motion is used in the track.
+# contrapuntal_motion: 
+# Measure what contrapuntal motion is used in the track.
 # Returns a dictionary with percentage that the motion is used.
 # The dictionary has the keys: 'Similar', 'Parallel', 'Oblique', 'Contrary', 'Rest' and 'One'.
 # 'One' is for when only one voice have rest. 'Rest' is if both are resting.
 # ---------------------------------------------
-def contrapunctal_motion(first_voice, second_voice):
+def contrapuntal_motion(first_voice, second_voice):
     if len(first_voice) == 0:
         print('Error occured')
         breakpoint()
@@ -326,7 +326,7 @@ def contrapunctal_motion(first_voice, second_voice):
     motion_second = motion_of_track(second_voice)
     
     # Check combo of motions
-    contrapunctal_motion = []
+    contrapuntal_motion = []
     parallel_motion = 0
     similar_motion = 0
     rest_motion = 0
@@ -380,7 +380,7 @@ def contrapunctal_motion(first_voice, second_voice):
             contrary_motion += current_beat - previous_beat
         
         # Add motion to list
-        contrapunctal_motion.append([previous_beat, current_beat-previous_beat, current_motion])
+        contrapuntal_motion.append([previous_beat, current_beat-previous_beat, current_motion])
 
         # If reach the end of track, break
         if current_beat == total_nr_beats:
@@ -407,11 +407,11 @@ def contrapunctal_motion(first_voice, second_voice):
         current_beat = min(motion_first[ind_first][0] + motion_first[ind_first][1], motion_second[ind_second][0] + motion_second[ind_second][1])
 
         
-    contrapunctal_motion_values = {'Contrary': contrary_motion/(total_nr_beats + extra_beats), 'Parallel': parallel_motion/(total_nr_beats + extra_beats), 
+    contrapuntal_motion_values = {'Contrary': contrary_motion/(total_nr_beats + extra_beats), 'Parallel': parallel_motion/(total_nr_beats + extra_beats), 
                     'Oblique': oblique_motion/(total_nr_beats + extra_beats), 'Similar': similar_motion/(total_nr_beats + extra_beats), 
                     'Rest': rest_motion/(total_nr_beats + extra_beats), 'One': one_motion/(total_nr_beats + extra_beats)}
     
-    return contrapunctal_motion_values
+    return contrapuntal_motion_values
 
 # ---------------------------------------------
 # track_motion: 
@@ -773,7 +773,7 @@ def check_same_pattern(track1, track2):
 # Checks what fraction of a melody that use 'good' intervals: No big jumps or dissonant intervals allowed,
 # according to #2 in this list https://en.wikipedia.org/wiki/Counterpoint#Considerations_for_all_species
 #
-# Does not take tonality into account! Could be extended if needed. 
+# Notes: Does not take tonality into account. If there are one or zero notes in the melody, it returns 0.
 # ------------------------------------------
 def check_melody_intervals(track):
     # The melody we test is the track melody without pauses. It will work if the melody has multiple pitches
@@ -781,9 +781,9 @@ def check_melody_intervals(track):
     # be to use the highest pitch, but I don't think that's necessary for now
     melody = [note[2][0] for note in track.get_notes() if note[2]]
     good_intervals = [0,1,2,3,4,5,7,12]
-
+    
     if len(melody) <= 1:
-        return 0
+        return  0.0
     
     # count number of good intervals 
     nmb = 0
@@ -842,7 +842,7 @@ def check_motion_of_melody(track):
             last_two_skips_dir = 0      # Reset two skip counter 
             continue
     
-        # Skips are good depending on circumstances:             
+        # Skips are good depending on circumstances:            
         direction = interval / abs(interval)            # -1 if downward motion, 1 if upward
             
         # Bad, continue: Skip is in the same direction as previous two
@@ -881,6 +881,7 @@ def check_motion_of_melody(track):
 
     frac_of_good_motion = good / (len(melody)-1)
     return frac_of_good_motion
+
 # ---------------------------------------------
 # check_note_durations:
 # Check the duration of all notes.

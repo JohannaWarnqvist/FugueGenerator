@@ -1,6 +1,7 @@
 
 *.pyc
 *.log
+final_fugue.txt
 final_fugue.ly
 final_fugue.mid
 final_fugue.pdf
