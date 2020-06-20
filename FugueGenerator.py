@@ -1,8 +1,8 @@
 #--------------------------------------------------------------
 # This document works as the Main file for fugue generation
 # Contains the global variables that defines the fugue, voices, key and subject
-# The function generate fugue generates a finished fugue composition
-# The subject can be any length!
+# The function generate_fugue generates an easy finished fugue composition
+# The function generate_longer_fugue can generate a longer fugue with minor, reversed and/or inversed parts developments
 #--------------------------------------------------------------
 
 from mingus.containers import Composition
@@ -51,6 +51,7 @@ def generate_fugue(key,subject):
     
     # Generate countersubject
     eg_counter = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'counter', input_melody = subject, nr_generations = counter_nr_generations)
+    print('Generating evolutionary part 1 of 6')
     eg_counter.run_evolution()
     counter_subject = copy.deepcopy(eg_counter.best_individual)
     
@@ -70,7 +71,8 @@ def generate_fugue(key,subject):
     # Generate harmony in second voice in bar 5
     eg_harmony_minor = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'harmony', 
             input_melody = Track().add_bar(copy.deepcopy(minor_first_voice[0])), nr_generations = harmony_nr_generations)
-
+    
+    print('Generating evolutionary part 2 of 6')
     eg_harmony_minor.run_evolution()
     
     minor_second_voice[0] = eg_harmony_minor.best_individual[0]
@@ -82,6 +84,7 @@ def generate_fugue(key,subject):
     eg_modulate_to_minor = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'modulate', 
             from_bar = bar_2, to_bar = bar_5, from_key = key, to_key = minor_key, nr_generations = modulate_nr_generations)
 
+    print('Generating evolutionary part 3 of 6')
     eg_modulate_to_minor.run_evolution()
     modulate_first_voice = copy.deepcopy(eg_modulate_to_minor.best_individual)
 
@@ -90,6 +93,7 @@ def generate_fugue(key,subject):
     eg_second_voice_modulate = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'harmony', 
             input_melody = modulate_first_voice, from_key = 'C', to_key = 'Am', nr_generations = harmony_nr_generations)
     
+    print('Generating evolutionary part 4 of 6')
     eg_second_voice_modulate.run_evolution()    
     modulate_second_voice = copy.deepcopy(eg_second_voice_modulate.best_individual)
 
@@ -118,7 +122,8 @@ def generate_fugue(key,subject):
     
     eg_modulate_to_major = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'modulate', 
             from_bar = bar_6, to_bar = bar_9, from_key = 'Am', to_key = 'C', nr_generations = modulate_nr_generations)
-
+    
+    print('Generating evolutionary part 5 of 6')
     eg_modulate_to_major.run_evolution()
     modulate_back_first_voice = copy.deepcopy(eg_modulate_to_major.best_individual)
 
@@ -127,6 +132,7 @@ def generate_fugue(key,subject):
     eg_second_voice_modulate_back = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'harmony', 
             input_melody = modulate_first_voice, from_key = 'Am', to_key = 'C', nr_generations = harmony_nr_generations)
     
+    print('Generating evolutionary part 6 of 6')
     eg_second_voice_modulate_back.run_evolution()    
     modulate_back_second_voice = copy.deepcopy(eg_second_voice_modulate.best_individual)
     
@@ -153,13 +159,13 @@ def generate_fugue(key,subject):
 
  
 # nr_parts tells how many parts (inverse, reverse, minor, other start note) is wanted between first subject/answer and the last stretto.
-def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
+def generate_longer_fugue(key, subject, nr_parts = 1, order_of_parts = None):
     #If subject doesn't fill full bars fill out rest of last bar of subject with rest
     #if last bar is not full
     if not (subject[-1].is_full()): 
         #place a rest at the end of the last bar with the length of 1/(remaining fraction of bar)
         subject[-1].place_rest(int(1.0/subject[-1].space_left()))
-
+    
     # Create first bar with subject in first voice and rest in second voice. 
     rest_1bar = Bar(key)
     rest_1bar.place_rest(1)
@@ -169,6 +175,7 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
     for i in range(len(subject)):  
         second_voice.add_bar(copy.deepcopy(rest_1bar))
     
+    total_nr_evolutionary_parts = 3 + 3*nr_parts
 
     # Create second bar with answer in second voice.
     answer = Track_Functions.create_answer(subject, key)
@@ -176,7 +183,10 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
     Track_Functions.add_tracks(second_voice,answer)
     
     # Generate countersubject
+    nr_current_generated = 1
     eg_counter = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'counter', input_melody = subject, nr_generations = counter_nr_generations)
+    print(f"Generating evolutionary part {nr_current_generated} of {total_nr_evolutionary_parts}")
+    nr_current_generated += 1
     eg_counter.run_evolution()
     counter_subject = copy.deepcopy(eg_counter.best_individual)
     
@@ -214,13 +224,15 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
                 # Generate harmony in second voice first bar
                 eg_harmony = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'harmony', 
                         input_melody = Track().add_bar(copy.deepcopy(new_first_voice[0])), nr_generations = harmony_nr_generations)
-
+                
+                print(f"Generating evolutionary part {nr_current_generated} of {total_nr_evolutionary_parts}")
+                nr_current_generated += 1
                 eg_harmony.run_evolution()
                 
                 new_second_voice[0] = eg_harmony.best_individual[0]
 
             elif current_variant == 'Reverse':
-                # Genereate reverse development
+                # Generate reverse development
                 
                 new_first_voice = Track_Functions.reverse(first_voice_first_part, key)
                 new_second_voice = Track_Functions.reverse(second_voice_first_part, key)
@@ -230,13 +242,14 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
                 # Generate harmony in second voice first bar
                 eg_harmony = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'harmony', 
                         input_melody = Track().add_bar(copy.deepcopy(new_first_voice[1])), nr_generations = harmony_nr_generations)
-
+                
+                print(f"Generating evolutionary part {nr_current_generated} of {total_nr_evolutionary_parts}")
+                nr_current_generated += 1
                 eg_harmony.run_evolution()
-                #breakpoint()
                 new_second_voice[1] = eg_harmony.best_individual[0]
 
             elif current_variant == 'Inverse':
-                # Genereate inverse development
+                # Generate inverse development
                 
                 new_first_voice = Track_Functions.inverse(first_voice_first_part)
                 new_second_voice = Track_Functions.inverse(second_voice_first_part)
@@ -247,8 +260,9 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
                 eg_harmony = EvolutionaryGenerator(key, nr_bars = 1, fitness_function = 'harmony', 
                         input_melody = Track().add_bar(copy.deepcopy(new_first_voice[0])), nr_generations = harmony_nr_generations)
 
+                print(f"Generating evolutionary part {nr_current_generated} of {total_nr_evolutionary_parts}")
+                nr_current_generated += 1
                 eg_harmony.run_evolution()
-                #breakpoint()
                 new_second_voice[0] = eg_harmony.best_individual[0]
                 
                 
@@ -258,6 +272,8 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
             eg_modulate = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'modulate', 
                     from_bar = bar_prev, to_bar = bar_after, nr_generations = modulate_nr_generations)
 
+            print(f"Generating evolutionary part {nr_current_generated} of {total_nr_evolutionary_parts}")
+            nr_current_generated += 1
             eg_modulate.run_evolution()
             modulate_first_voice = copy.deepcopy(eg_modulate.best_individual)
 
@@ -266,6 +282,8 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
             eg_second_voice_modulate = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'harmony', 
                     input_melody = modulate_first_voice, nr_generations = harmony_nr_generations)
             
+            print(f"Generating evolutionary part {nr_current_generated} of {total_nr_evolutionary_parts}")
+            nr_current_generated += 1
             eg_second_voice_modulate.run_evolution()    
             modulate_second_voice = copy.deepcopy(eg_second_voice_modulate.best_individual)
 
@@ -298,6 +316,8 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
     eg_modulate_to_major = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'modulate', 
             from_bar = bar_prev, to_bar = bar_after, nr_generations = modulate_nr_generations)
 
+    print(f"Generating evolutionary part {nr_current_generated} of {total_nr_evolutionary_parts}")
+    nr_current_generated += 1
     eg_modulate_to_major.run_evolution()
     modulate_back_first_voice = copy.deepcopy(eg_modulate_to_major.best_individual)
 
@@ -306,6 +326,8 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
     eg_second_voice_modulate_back = EvolutionaryGenerator(key, nr_bars = 2, fitness_function = 'harmony', 
             input_melody = modulate_first_voice, nr_generations = harmony_nr_generations)
     
+    print(f"Generating evolutionary part {nr_current_generated} of {total_nr_evolutionary_parts}")
+    nr_current_generated += 1
     eg_second_voice_modulate_back.run_evolution()    
     modulate_back_second_voice = copy.deepcopy(eg_second_voice_modulate.best_individual)
     
@@ -323,24 +345,21 @@ def generate_random_fugue(key, subject, nr_parts = 1, order_of_parts = None):
     fugue.add_track(first_voice)
     fugue.add_track(second_voice)
 
-    #Generate lilypond file for fugue named final_fugue
-    finished_fugue = LilyPond.from_Composition(fugue)
-    to_LilyPond_file(finished_fugue,"final_fugue")
+    #Generate lilypond file for fugue named final_fugue (removed for submission)
+    #finished_fugue = LilyPond.from_Composition(fugue)
+    #to_LilyPond_file(finished_fugue,"final_fugue")
 
     #Generate MIDI output for fugue named final_fugue
     midi_file_out.write_Composition("final_fugue.mid", fugue) 
+    return
 
  
 # Set number of generations to use for different types of generators
-harmony_nr_generations = 500
+harmony_nr_generations = 200
 modulate_nr_generations = 100
-counter_nr_generations = 500
+counter_nr_generations = 200
 
 # Test for debugging
-test_track = Track_Functions.init_random_track("C", True)
-#test_track = Track_Functions.init_preset_track('blinka')
-#generate_random_fugue("D", test_track, 1)
-generate_random_fugue('C', test_track, 3, ['Minor', 'Inverse', 'Reverse'])
-
-
+test_track = Track_Functions.init_preset_track("blinka")
+generate_longer_fugue("C", test_track, 3, ['Minor', 'Inverse', 'Reverse'])
 
