@@ -85,7 +85,7 @@ class EvolutionaryGenerator():
         for iGen in range(self.nr_generations):
             
             # == Calculate fitness and save best individual ==
-            fitness_values = self.calculate_fitness(self.population)
+            fitness_values = self.calculate_fitness()
             
             # Save a copy of the best individual
             best_individual_index = np.argmax(fitness_values)        
@@ -134,7 +134,7 @@ class EvolutionaryGenerator():
             
         
         # == Calculate fitness and save best individual ==
-        fitness_values = self.calculate_fitness(self.population)
+        fitness_values = self.calculate_fitness()
         
         # Save a copy of the best individual
         best_individual_index = np.argmax(fitness_values)        
@@ -531,25 +531,26 @@ class EvolutionaryGenerator():
         
         return durations
     
-    def calculate_fitness(self, population):
+    def calculate_fitness(self):
         "Calls on the wanted fitness function using self and the population as arguments."
         
         if self.fitness_function == 'C':
-            fitness_values = Fitness_Functions.calculate_fitness_C(population)
+            fitness_values = Fitness_Functions.calculate_fitness_C(self.population)
             self.global_max = 2
         elif self.fitness_function == 'pauses':
-            fitness_values = Fitness_Functions.calculate_fitness_rests(population)
+            fitness_values = Fitness_Functions.calculate_fitness_rests(self.population)
         elif self.fitness_function == 'counter':
-            fitness_values = Fitness_Functions.calculate_fitness_harmony(population, self.input_melody, self.key)
+            fitness_values = Fitness_Functions.calculate_fitness_harmony(self.population, self.input_melody, self.key)
         elif self.fitness_function == 'modulate':
-            fitness_values = Fitness_Functions.calculate_fitness_modulate(population, self.from_bar, self.to_bar, self.from_key, self.to_key)
+            fitness_values = Fitness_Functions.calculate_fitness_modulate(self.population, self.from_bar, self.to_bar)
         elif self.fitness_function == 'harmony':
             if len(self.input_melody) == 0:
                 raise ValueError('Input is empty')
-
             fitness_values = Fitness_Functions.calculate_fitness_harmony(self.population, self.input_melody, self.key)
+        elif self.fitness_function == 'ending':
+            fitness_values = Fitness_Functions.calculate_fitness_harmony_and_modulate(self.population, self.from_bar, self.to_bar, self.input_melody, self.key)
         elif self.fitness_function == 'test':
-            fitness_values = Fitness_Functions.calculate_fitness_test(self,population, self.input_melody, self.key)
+            fitness_values = Fitness_Functions.calculate_fitness_test(self.population, self.input_melody, self.key)
 
         return fitness_values
    

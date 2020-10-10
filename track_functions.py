@@ -160,6 +160,7 @@ def init_preset_track(num):
         track.add_notes(nc2)
         track + "G-5"
         track + "C-6"
+        key = 'C'
     if num==2:
         track + "E"
         track + "D"
@@ -172,10 +173,12 @@ def init_preset_track(num):
         track + "D"
         track + "E"
         track + "E-5"
+        key = 'C'
     if num ==3:
         test_scale = scales.Major("C")
         for i in range(7):
             track + test_scale[i]
+        key = 'C'
     if num == 4 or num == 'blinka':
         bar = Bar()
         bar.place_notes('C-4', 8)
@@ -186,6 +189,7 @@ def init_preset_track(num):
         bar.place_notes('A-4', 8)
         bar.place_notes('G-4', 4)
         track.add_bar(bar)
+        key = 'C'
 
     if num == "nokia": #scale A
         track.add_notes('E-4', 16)
@@ -201,13 +205,15 @@ def init_preset_track(num):
         track.add_notes('A-3', 16)
         track.add_notes('A-3', 8)
 
+        key = 'A'
+
     if num == "windows": #scale C#
         track.add_notes('D#-5', 4)
         track.add_notes('A#-4', 8)
         track.add_notes('G#-4', 4)
         track.add_notes('D#-5', 8)
         track.add_notes(['A#-3', 'D#-4', 'A#-4'], 4)   
-
+        key = 'C#'
     if num == "brick": #scale C
         track.add_notes('E-4', 4)
         track.add_notes('B-3', 8)
@@ -216,13 +222,15 @@ def init_preset_track(num):
         track.add_notes('C-4', 8)
         track.add_notes('B-3', 8)
 
+        key = 'C'
 
     if num == "panther": #Scale E
         track.add_notes('D#-4', 8)
         track.add_notes('E-4', 8/3)
         track.add_notes('F#-4', 8)
         track.add_notes('G-4', 8/3)
-    return track
+        key = 'E'
+    return (track, key)
 
 # Helper function
 def get_interval_from_halfnotes(nmb_of_halfnotes):
@@ -626,6 +634,34 @@ def interval_at_beat(track1,track2,beat,return_int = False):
     else:
         note_pair = NoteContainer([pitch1[0],pitch2[0]])
         return note_pair.determine()[0]
+
+
+
+#-------------------------
+# Ending for second voice
+# Creates the base tone ending of the piece.
+# Modifies the track
+#-------------------------
+def second_voice_ending(second_track, key):
+    first = key
+    fourth = intervals.fourth(key, key)
+    fifth = intervals.fifth(key,key)
+
+    second_track.add_notes(Note(first,3),2)    
+    second_track.add_notes(Note(fourth,3),2)
+    second_track.add_notes(Note(fifth,3),2)
+    second_track.add_notes(Note(fifth,3),1)
+
+#------------------------
+# Ending for first voice
+# Returns last bar containing a full note of the root note
+#------------------------
+def first_voice_ending(first_track, key):
+    last_bar_track = Track()
+    last_bar_track.add_notes(Note(key,4),1)
+    return last_bar_track
+
+
 
 
 #-------------------------
